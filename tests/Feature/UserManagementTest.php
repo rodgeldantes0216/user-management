@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\ActivityLog;
 use App\Livewire\Users\Index;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -50,6 +51,11 @@ class UserManagementTest extends TestCase
             'email' => 'new@example.com',
             'role' => User::ROLE_USER,
         ]);
+        $this->assertDatabaseHas('activity_logs', [
+            'name' => $admin->name,
+            'email' => $admin->email,
+            'action' => 'Created user',
+        ]);
 
         $component
             ->call('edit', $target->id)
@@ -63,6 +69,11 @@ class UserManagementTest extends TestCase
             'name' => 'Updated User',
             'role' => User::ROLE_ADMIN,
         ]);
+        $this->assertDatabaseHas('activity_logs', [
+            'name' => $admin->name,
+            'email' => $admin->email,
+            'action' => 'Updated user',
+        ]);
 
         $newUser = User::where('email', 'new@example.com')->firstOrFail();
 
@@ -73,6 +84,11 @@ class UserManagementTest extends TestCase
 
         $this->assertDatabaseMissing('users', [
             'id' => $newUser->id,
+        ]);
+        $this->assertDatabaseHas('activity_logs', [
+            'name' => $admin->name,
+            'email' => $admin->email,
+            'action' => 'Deleted user',
         ]);
     }
 }

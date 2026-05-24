@@ -4,13 +4,13 @@
         <div class="mt-4 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
                 <h2 class="text-3xl font-semibold text-slate-950">Dashboard</h2>
-                <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-500">
+                <!-- <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-500">
                     This workspace uses Livewire full-page components with `wire:navigate`, so moving between pages stays smooth while the backend remains fully Laravel.
-                </p>
+                </p> -->
             </div>
 
             @can('viewAny', \App\Models\User::class)
-                <a href="{{ route('users.index') }}" wire:navigate class="btn-primary">Open user management</a>
+                <a href="{{ route('users.index') }}" wire:navigate class="btn-primary">Open User Management</a>
             @endcan
         </div>
     </section>

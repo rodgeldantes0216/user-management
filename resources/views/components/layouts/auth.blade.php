@@ -14,14 +14,14 @@
             <div class="grid w-full max-w-6xl gap-8 lg:grid-cols-[1.15fr_0.85fr]">
                 <section class="hidden rounded-[2rem] bg-slate-950 px-10 py-12 text-white shadow-2xl lg:flex lg:flex-col lg:justify-between">
                     <div>
-                        <p class="text-sm uppercase tracking-[0.35em] text-brand-200">User Management</p>
-                        <h1 class="mt-6 max-w-md text-5xl font-semibold leading-tight">A clean Livewire workspace for authentication and admin control.</h1>
+                        <p class="text-3xl uppercase tracking-[0.35em] text-brand-200">User Management</p>
+                        <h1 class="mt-6 max-w-md text-5xl font-semibold leading-tight">Clean workspace for Auth and Admin control.</h1>
                         <p class="mt-6 max-w-xl text-base leading-7 text-slate-300">
-                            Built to feel fast with SPA-style navigation, role-based access, and a modern layout inspired by Flux UI.
+                            SPA-style navigation, role-based access, and a modern layout inspired by Flux UI.
                         </p>
                     </div>
 
-                    <div class="grid gap-4 md:grid-cols-3">
+                    <!-- <div class="grid gap-4 md:grid-cols-3">
                         <div class="rounded-3xl border border-white/10 bg-white/5 p-5">
                             <p class="text-sm text-slate-300">Authentication</p>
                             <p class="mt-2 text-lg font-semibold">Register, sign in, sign out</p>
@@ -34,7 +34,10 @@
                             <p class="text-sm text-slate-300">Navigation</p>
                             <p class="mt-2 text-lg font-semibold">Livewire SPA transitions</p>
                         </div>
-                    </div>
+                    </div> -->
+
+                    <!-- // add ruuning PH time here -->
+                    <p class="text-sm text-slate-300">Current PH Time: {{ now()->setTimezone('Asia/Manila')->format('h:i:s A') }}</p>
                 </section>
 
                 <section class="panel px-6 py-8 sm:px-10 sm:py-10">

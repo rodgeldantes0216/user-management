@@ -2,7 +2,10 @@
 
 namespace App\Livewire\Users;
 
+use App\Models\Role;
 use App\Models\User;
+use App\Support\Activity;
+use App\Support\NotificationCenter;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -45,12 +48,19 @@ class Index extends Component
 
     public function updatingSearch(): void
     {
+        sleep(0.4);
         $this->resetPage();
     }
 
     public function updatingRoleFilter(): void
     {
+        sleep(0.4);
         $this->resetPage();
+    }
+
+    public function updatingPaginators($page, $pageName): void
+    {
+        sleep(0.4);
     }
 
     public function create(): void
@@ -93,6 +103,20 @@ class Index extends Component
             }
 
             $user->update($payload);
+            $user->syncRoleByName($validated['role']);
+            Activity::log('Updated user', $user, [
+                'target_name' => $user->name,
+                'target_email' => $user->email,
+                'role' => $validated['role'],
+            ], auth()->user());
+            NotificationCenter::notifyForModule(
+                'users',
+                'User updated',
+                auth()->user()->name.' updated '.$user->name.'.',
+                'users.view',
+                auth()->user(),
+                ['user_id' => $user->id]
+            );
 
             session()->flash('status', 'User updated successfully.');
         } else {
@@ -100,12 +124,27 @@ class Index extends Component
 
             $validated = $this->validate($this->rules());
 
-            User::create([
+            $user = User::create([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'role' => $validated['role'],
                 'password' => $validated['password'],
             ]);
+
+            $user->syncRoleByName($validated['role']);
+            Activity::log('Created user', $user, [
+                'target_name' => $user->name,
+                'target_email' => $user->email,
+                'role' => $validated['role'],
+            ], auth()->user());
+            NotificationCenter::notifyForModule(
+                'users',
+                'User created',
+                auth()->user()->name.' created '.$user->name.'.',
+                'users.view',
+                auth()->user(),
+                ['user_id' => $user->id]
+            );
 
             session()->flash('status', 'User created successfully.');
         }
@@ -126,6 +165,20 @@ class Index extends Component
     {
         $user = User::findOrFail($this->deletingUserId);
         $this->authorize('delete', $user);
+
+        Activity::log('Deleted user', $user, [
+            'target_name' => $user->name,
+            'target_email' => $user->email,
+            'role' => $user->primaryRoleName(),
+        ], auth()->user());
+        NotificationCenter::notifyForModule(
+            'users',
+            'User deleted',
+            auth()->user()->name.' deleted '.$user->name.'.',
+            'users.view',
+            auth()->user(),
+            ['user_id' => $user->id]
+        );
 
         $user->delete();
 
@@ -159,11 +212,17 @@ class Index extends Component
             })
             ->when($this->roleFilter !== '', fn ($query) => $query->where('role', $this->roleFilter))
             ->latest()
-            ->paginate(8);
+            ->paginate(5);
 
         return view('livewire.users.index', [
             'users' => $users,
+            'roles' => Role::query()->orderBy('label')->get(),
         ]);
+    }
+
+    public function paginationView(): string
+    {
+        return 'vendor.pagination.tailwind';
     }
 
     protected function rules(?User $user = null): array
@@ -175,7 +234,7 @@ class Index extends Component
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email,'.($user?->id ?? 'NULL')],
-            'role' => ['required', 'in:'.implode(',', [User::ROLE_ADMIN, User::ROLE_USER])],
+            'role' => ['required', 'exists:roles,name'],
             'password' => $passwordRules,
         ];
     }

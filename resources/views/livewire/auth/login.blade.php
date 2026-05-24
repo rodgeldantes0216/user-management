@@ -1,10 +1,10 @@
 <div>
     <div class="mb-8">
-        <p class="text-sm uppercase tracking-[0.3em] text-brand-600">Welcome back</p>
+        <p class="text-sm uppercase tracking-[0.3em] text-brand-600">Welcome</p>
         <h2 class="mt-3 text-3xl font-semibold text-slate-950">Sign in to your account</h2>
-        <p class="mt-3 text-sm leading-6 text-slate-500">
+        <!-- <p class="mt-3 text-sm leading-6 text-slate-500">
             Use the seeded admin account to manage users: <span class="font-semibold">admin@example.com</span> / <span class="font-semibold">password</span>
-        </p>
+        </p> -->
     </div>
 
     <form wire:submit="login" class="space-y-5">

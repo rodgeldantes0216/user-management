@@ -1,74 +1,82 @@
 <div class="space-y-6">
-    <section class="panel p-6 sm:p-8">
-        <div class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+    <section class="content-panel px-7 py-7 sm:px-10 sm:py-8">
+        <div class="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
             <div>
-                <p class="text-sm uppercase tracking-[0.3em] text-brand-600">Administration</p>
-                <h2 class="mt-3 text-3xl font-semibold text-slate-950">User management</h2>
-                <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-500">
-                    Manage users, assign roles, and keep access control simple with an admin-only module.
-                </p>
+                <p class="section-kicker">Administration</p>
+                <h2 class="mt-5 text-3xl font-semibold text-slate-100 md:text-4xl">User management</h2>
             </div>
 
-            <div class="flex flex-col gap-3 sm:flex-row">
-                <input type="text" wire:model.live.debounce.300ms="search" class="input sm:w-72" placeholder="Search name or email">
-                <select wire:model.live="roleFilter" class="select sm:w-44">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
+                <input type="text" wire:model.live.debounce.300ms="search" class="input sm:w-[18rem]" placeholder="Search name or email">
+                <select wire:model.live="roleFilter" class="select sm:w-[14rem]">
                     <option value="">All roles</option>
-                    <option value="admin">Admin</option>
-                    <option value="user">User</option>
+                    @foreach ($roles as $availableRole)
+                        <option value="{{ $availableRole->name }}">{{ $availableRole->label }}</option>
+                    @endforeach
                 </select>
-                <button type="button" wire:click="create" class="btn-primary">New user</button>
+                <button type="button" wire:click="create" class="btn-primary min-w-[6.5rem]">New user</button>
             </div>
         </div>
 
         @if (session('status'))
-            <div class="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+            <div class="mt-6 rounded-2xl border border-emerald-800 bg-emerald-950/40 px-4 py-3 text-sm font-medium text-emerald-300">
                 {{ session('status') }}
             </div>
         @endif
     </section>
 
-    <section class="table-card">
-        <div class="overflow-x-auto">
+    <section class="table-card relative">
+        <div wire:loading.flex wire:target="gotoPage,nextPage,previousPage,search,roleFilter" class="absolute inset-0 z-20 hidden items-center justify-center rounded-[2rem] bg-white/12 backdrop-blur-md">
+            <div class="flex items-center gap-3 rounded-2xl border border-slate-700 bg-[#1d2023] px-5 py-4 text-sm font-medium text-slate-200">
+                <svg class="h-5 w-5 animate-spin text-brand-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-90" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                </svg>
+                <span>Loading users...</span>
+            </div>
+        </div>
+
+        <div wire:loading.class="pointer-events-none opacity-40 blur-[3px] saturate-50" wire:target="gotoPage,nextPage,previousPage,search,roleFilter" class="overflow-x-auto transition duration-200">
             <table class="min-w-full">
                 <thead class="table-head">
                     <tr>
-                        <th class="px-6 py-4">Name</th>
-                        <th class="px-6 py-4">Email</th>
-                        <th class="px-6 py-4">Role</th>
-                        <th class="px-6 py-4">Created</th>
-                        <th class="px-6 py-4 text-right">Actions</th>
+                        <th class="px-8 py-6">Name</th>
+                        <th class="px-8 py-6">Email</th>
+                        <th class="px-8 py-6">Role</th>
+                        <th class="px-8 py-6">Created</th>
+                        <th class="px-8 py-6 text-right">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-200">
+                <tbody>
                     @forelse ($users as $user)
-                        <tr class="bg-white">
-                            <td class="table-cell font-medium text-slate-900">{{ $user->name }}</td>
-                            <td class="table-cell">{{ $user->email }}</td>
+                        <tr class="table-row">
+                            <td class="table-cell font-medium text-blue-100">{{ $user->name }}</td>
+                            <td class="table-cell text-blue-100/95">{{ $user->email }}</td>
                             <td class="table-cell">
-                                <span class="rounded-full {{ $user->role === 'admin' ? 'bg-brand-100 text-brand-700' : 'bg-slate-100 text-slate-600' }} px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em]">
-                                    {{ $user->role }}
+                                <span class="badge-role">
+                                    {{ $user->primaryRoleName() }}
                                 </span>
                             </td>
-                            <td class="table-cell">{{ $user->created_at->format('M d, Y') }}</td>
+                            <td class="table-cell text-blue-100/95">{{ $user->created_at->format('M d, Y') }}</td>
                             <td class="table-cell">
                                 <div class="flex justify-end gap-2">
-                                    <button type="button" wire:click="edit({{ $user->id }})" class="btn-secondary px-3 py-2">Edit</button>
+                                    <button type="button" wire:click="edit({{ $user->id }})" class="btn-secondary px-5 py-2.5">Edit</button>
                                     @if (auth()->id() !== $user->id)
-                                        <button type="button" wire:click="confirmDelete({{ $user->id }})" class="btn-danger px-3 py-2">Delete</button>
+                                        <button type="button" wire:click="confirmDelete({{ $user->id }})" class="btn-danger px-5 py-2.5">Delete</button>
                                     @endif
                                 </div>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-6 py-10 text-center text-sm text-slate-500">No users matched your current filters.</td>
+                            <td colspan="5" class="px-8 py-14 text-center text-sm text-slate-500">No users matched your current filters.</td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
 
-        <div class="border-t border-slate-200 bg-white px-6 py-4">
+        <div class="px-8 py-4">
             {{ $users->links() }}
         </div>
     </section>
@@ -78,10 +86,10 @@
             <div class="panel w-full max-w-2xl p-6 sm:p-8">
                 <div class="flex items-start justify-between gap-4">
                     <div>
-                        <h3 class="text-2xl font-semibold text-slate-950">{{ $editingUserId ? 'Edit user' : 'Create user' }}</h3>
-                        <p class="mt-2 text-sm text-slate-500">Fill in the details below and save the account.</p>
+                        <h3 class="text-2xl font-semibold text-slate-100">{{ $editingUserId ? 'Edit user' : 'Create user' }}</h3>
+                        <p class="mt-2 text-sm text-slate-400">Fill in the details below and save the account.</p>
                     </div>
-                    <button type="button" wire:click="closeFormModal" class="text-sm font-medium text-slate-500 hover:text-slate-900">Close</button>
+                    <button type="button" wire:click="closeFormModal" class="text-sm font-medium text-slate-500 hover:text-slate-100">Close</button>
                 </div>
 
                 <form wire:submit="save" class="mt-6 space-y-5">
@@ -103,8 +111,9 @@
                         <div>
                             <label class="label">Role</label>
                             <select wire:model="role" class="select">
-                                <option value="user">User</option>
-                                <option value="admin">Admin</option>
+                                @foreach ($roles as $availableRole)
+                                    <option value="{{ $availableRole->name }}">{{ $availableRole->label }}</option>
+                                @endforeach
                             </select>
                             @error('role') <p class="mt-2 text-sm text-rose-600">{{ $message }}</p> @enderror
                         </div>
@@ -136,8 +145,8 @@
     @if ($showDeleteModal)
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 px-4 py-6">
             <div class="panel w-full max-w-lg p-6 sm:p-8">
-                <h3 class="text-2xl font-semibold text-slate-950">Delete user</h3>
-                <p class="mt-3 text-sm leading-6 text-slate-500">This action permanently removes the selected user account.</p>
+                <h3 class="text-2xl font-semibold text-slate-100">Delete user</h3>
+                <p class="mt-3 text-sm leading-6 text-slate-400">This action permanently removes the selected user account.</p>
 
                 <div class="mt-6 flex justify-end gap-3">
                     <button type="button" wire:click="closeDeleteModal" class="btn-secondary">Cancel</button>

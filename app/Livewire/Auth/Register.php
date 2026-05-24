@@ -3,6 +3,7 @@
 namespace App\Livewire\Auth;
 
 use App\Models\User;
+use App\Support\Settings;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -22,6 +23,8 @@ class Register extends Component
 
     public function register(): void
     {
+        abort_unless(Settings::all()['feature_registration_enabled'], 403);
+
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
@@ -34,6 +37,8 @@ class Register extends Component
             'role' => User::ROLE_USER,
             'password' => $validated['password'],
         ]);
+
+        $user->syncRoleByName(User::ROLE_USER);
 
         Auth::login($user);
         if (request()->hasSession()) {

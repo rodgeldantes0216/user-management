@@ -97,6 +97,7 @@ php artisan test
 ## Notes & maintenance
 
 - The UI is implemented using Livewire and Blade — no separate JS SPA framework is required.
+- Debugbar is installed for local development and will display runtime profiling information when enabled.
 - Permissions are registered via `PermissionRegistry::syncAndRegister()` at seed time; add new permissions to the registry to have them seeded and available.
 - The `LargeUserSeeder` is intentionally chunked to avoid memory spikes during mass insertion; monitor database and disk usage when running it.
 

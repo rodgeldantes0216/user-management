@@ -1,9 +1,11 @@
 <?php
 
+use App\Livewire\Activities\Index as ActivitiesIndex;
 use App\Livewire\Auth\Login;
 use App\Livewire\Auth\Register;
-use App\Livewire\Activities\Index as ActivitiesIndex;
 use App\Livewire\Dashboard;
+use App\Livewire\Modules\Builder as ModuleBuilder;
+use App\Livewire\Modules\Records as ModuleRecords;
 use App\Livewire\Notifications\Index as NotificationsIndex;
 use App\Livewire\Roles\Index as RolesIndex;
 use App\Livewire\Settings\Index as SettingsIndex;
@@ -43,6 +45,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/notifications', NotificationsIndex::class)
         ->middleware('permission:notifications.view')
         ->name('notifications.index');
+
+    Route::get('/modules/builder', ModuleBuilder::class)
+        ->middleware('permission:modules.view')
+        ->name('modules.builder');
+
+    Route::get('/modules/{module}', ModuleRecords::class)
+        ->name('modules.records');
 
     Route::post('/logout', function (Request $request) {
         Auth::guard('web')->logout();

@@ -1,6 +1,6 @@
 @if ($paginator->hasPages())
-    <nav role="navigation" aria-label="{{ __('Pagination Navigation') }}" class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div class="text-sm text-slate-500">
+    <nav role="navigation" aria-label="{{ __('Pagination Navigation') }}" class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div class="text-xs text-slate-500">
             @if ($paginator->firstItem())
                 <span>{{ $paginator->firstItem() }}-{{ $paginator->lastItem() }}</span>
             @else
@@ -11,14 +11,14 @@
 
         <div class="flex items-center gap-1.5">
             @if ($paginator->onFirstPage())
-                <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-700">
-                    <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                <span class="inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-700">
+                    <svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
                     </svg>
                 </span>
             @else
-                <button type="button" wire:click="previousPage('{{ $paginator->getPageName() }}')" class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:text-slate-100" aria-label="{{ __('pagination.previous') }}">
-                    <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                <button type="button" wire:click="previousPage('{{ $paginator->getPageName() }}')" class="inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-400 transition hover:bg-white/[0.04] hover:text-slate-100" aria-label="{{ __('pagination.previous') }}">
+                    <svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
                     </svg>
                 </button>
@@ -45,11 +45,11 @@
                 @endif
 
                 @if ($page == $current)
-                    <span class="inline-flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-sm font-semibold text-white">
+                    <span class="inline-flex h-7 min-w-7 items-center justify-center rounded-md bg-white/[0.06] px-2 text-xs font-semibold text-white">
                         {{ $page }}
                     </span>
                 @else
-                    <button type="button" wire:click="gotoPage({{ $page }}, '{{ $paginator->getPageName() }}')" class="inline-flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-sm font-medium text-slate-400 transition hover:text-slate-100" aria-label="{{ __('Go to page :page', ['page' => $page]) }}">
+                    <button type="button" wire:click="gotoPage({{ $page }}, '{{ $paginator->getPageName() }}')" class="inline-flex h-7 min-w-7 items-center justify-center rounded-md px-2 text-xs font-medium text-slate-400 transition hover:bg-white/[0.04] hover:text-slate-100" aria-label="{{ __('Go to page :page', ['page' => $page]) }}">
                         {{ $page }}
                     </button>
                 @endif
@@ -60,14 +60,14 @@
             @endforeach
 
             @if ($paginator->hasMorePages())
-                <button type="button" wire:click="nextPage('{{ $paginator->getPageName() }}')" class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:text-slate-100" aria-label="{{ __('pagination.next') }}">
-                    <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                <button type="button" wire:click="nextPage('{{ $paginator->getPageName() }}')" class="inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-400 transition hover:bg-white/[0.04] hover:text-slate-100" aria-label="{{ __('pagination.next') }}">
+                    <svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
                     </svg>
                 </button>
             @else
-                <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-700">
-                    <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                <span class="inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-700">
+                    <svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
                     </svg>
                 </span>

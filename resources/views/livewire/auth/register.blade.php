@@ -1,13 +1,13 @@
 <div>
-    <div class="mb-8">
-        <p class="text-sm uppercase tracking-[0.3em] text-brand-600">Create account</p>
-        <h2 class="mt-3 text-3xl font-semibold text-slate-950">Join the workspace</h2>
-        <p class="mt-3 text-sm leading-6 text-slate-500">
+    <div class="mb-6">
+        <p class="section-kicker">Create account</p>
+        <h2 class="mt-2 text-2xl font-semibold text-slate-100">Join the workspace</h2>
+        <p class="mt-2 text-sm leading-6 text-slate-500">
             New accounts are created as regular users. Admin access is controlled from the user management module.
         </p>
     </div>
 
-    <form wire:submit="register" class="space-y-5">
+    <form wire:submit="register" class="space-y-4">
         <div>
             <label for="name" class="label">Full name</label>
             <input id="name" type="text" wire:model="name" class="input" placeholder="Jane Doe">
@@ -37,8 +37,8 @@
         </button>
     </form>
 
-    <p class="mt-8 text-sm text-slate-500">
+    <p class="mt-6 text-sm text-slate-500">
         Already have an account?
-        <a href="{{ route('login') }}" wire:navigate class="font-semibold text-brand-600 hover:text-brand-700">Sign in</a>
+        <a href="{{ route('login') }}" wire:navigate class="font-semibold text-brand-400 hover:text-brand-300">Sign in</a>
     </p>
 </div>

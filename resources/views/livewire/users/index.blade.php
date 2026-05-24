@@ -1,14 +1,14 @@
-<div class="space-y-6">
-    <section class="content-panel px-7 py-7 sm:px-10 sm:py-8">
-        <div class="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
+<div class="space-y-4">
+    <section class="content-panel px-5 py-4">
+        <div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div>
                 <p class="section-kicker">Administration</p>
-                <h2 class="mt-5 text-3xl font-semibold text-slate-100 md:text-4xl">User management</h2>
+                <h2 class="mt-2 text-2xl font-semibold text-slate-100">User management</h2>
             </div>
 
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
-                <input type="text" wire:model.live.debounce.300ms="search" class="input sm:w-[18rem]" placeholder="Search name or email">
-                <select wire:model.live="roleFilter" class="select sm:w-[14rem]">
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <input type="text" wire:model.live.debounce.300ms="search" class="input sm:w-64" placeholder="Search name or email">
+                <select wire:model.live="roleFilter" class="select sm:w-44">
                     <option value="">All roles</option>
                     @foreach ($roles as $availableRole)
                         <option value="{{ $availableRole->name }}">{{ $availableRole->label }}</option>
@@ -19,15 +19,15 @@
         </div>
 
         @if (session('status'))
-            <div class="mt-6 rounded-2xl border border-emerald-800 bg-emerald-950/40 px-4 py-3 text-sm font-medium text-emerald-300">
+            <div class="mt-4 rounded-lg border border-emerald-800/70 bg-emerald-950/30 px-3 py-2 text-sm font-medium text-emerald-300">
                 {{ session('status') }}
             </div>
         @endif
     </section>
 
     <section class="table-card relative">
-        <div wire:loading.flex wire:target="gotoPage,nextPage,previousPage,search,roleFilter" class="absolute inset-0 z-20 hidden items-center justify-center rounded-[2rem] bg-white/12 backdrop-blur-md">
-            <div class="flex items-center gap-3 rounded-2xl border border-slate-700 bg-[#1d2023] px-5 py-4 text-sm font-medium text-slate-200">
+        <div wire:loading.flex wire:target="gotoPage,nextPage,previousPage,search,roleFilter" class="absolute inset-0 z-20 hidden items-center justify-center rounded-xl bg-black/20 backdrop-blur-md">
+            <div class="flex items-center gap-3 rounded-lg border border-white/10 bg-[#12161b] px-4 py-3 text-sm font-medium text-slate-200">
                 <svg class="h-5 w-5 animate-spin text-brand-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-90" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
@@ -40,11 +40,11 @@
             <table class="min-w-full">
                 <thead class="table-head">
                     <tr>
-                        <th class="px-8 py-6">Name</th>
-                        <th class="px-8 py-6">Email</th>
-                        <th class="px-8 py-6">Role</th>
-                        <th class="px-8 py-6">Created</th>
-                        <th class="px-8 py-6 text-right">Actions</th>
+                        <th class="px-5 py-3">Name</th>
+                        <th class="px-5 py-3">Email</th>
+                        <th class="px-5 py-3">Role</th>
+                        <th class="px-5 py-3">Created</th>
+                        <th class="px-5 py-3 text-right">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -60,23 +60,23 @@
                             <td class="table-cell text-blue-100/95">{{ $user->created_at->format('M d, Y') }}</td>
                             <td class="table-cell">
                                 <div class="flex justify-end gap-2">
-                                    <button type="button" wire:click="edit({{ $user->id }})" class="btn-secondary px-5 py-2.5">Edit</button>
+                                    <button type="button" wire:click="edit({{ $user->id }})" class="btn-secondary px-3 py-1.5">Edit</button>
                                     @if (auth()->id() !== $user->id)
-                                        <button type="button" wire:click="confirmDelete({{ $user->id }})" class="btn-danger px-5 py-2.5">Delete</button>
+                                        <button type="button" wire:click="confirmDelete({{ $user->id }})" class="btn-danger px-3 py-1.5">Delete</button>
                                     @endif
                                 </div>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-8 py-14 text-center text-sm text-slate-500">No users matched your current filters.</td>
+                            <td colspan="5" class="px-5 py-10 text-center text-sm text-slate-500">No users matched your current filters.</td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
 
-        <div class="px-8 py-4">
+        <div class="px-5 py-3">
             {{ $users->links() }}
         </div>
     </section>

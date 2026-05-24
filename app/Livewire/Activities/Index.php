@@ -29,13 +29,13 @@ class Index extends Component
 
     public function updatingSearch(): void
     {
-        usleep(1000000);
+        sleep(0.4);
         $this->resetPage();
     }
 
     public function updatingPaginators($page, $pageName): void
     {
-        usleep(1000000);
+        sleep(0.4);
     }
 
     public function confirmDelete(int $activityId): void
@@ -72,7 +72,8 @@ class Index extends Component
                     $nested
                         ->where('name', 'like', '%'.$this->search.'%')
                         ->orWhere('email', 'like', '%'.$this->search.'%')
-                        ->orWhere('action', 'like', '%'.$this->search.'%');
+                        ->orWhere('action', 'like', '%'.$this->search.'%')
+                        ->orWhere('meta', 'like', '%'.$this->search.'%');
                 });
             })
             ->latest()

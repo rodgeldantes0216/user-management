@@ -23,13 +23,13 @@ class Index extends Component
 
     public function updatingFilter(): void
     {
-        usleep(1000000);
+        sleep(0.5);
         $this->resetPage();
     }
 
     public function updatingPaginators($page, $pageName): void
     {
-        usleep(1000000);
+        sleep(0.5);
     }
 
     public function markAsRead(int $notificationId): void

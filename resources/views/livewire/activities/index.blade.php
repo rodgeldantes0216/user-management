@@ -1,29 +1,29 @@
-<div class="space-y-6">
-    <section class="content-panel px-7 py-7 sm:px-10 sm:py-8">
-        <div class="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
+<div class="space-y-4">
+    <section class="content-panel px-5 py-4">
+        <div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div>
                 <p class="section-kicker">Administration</p>
-                <h2 class="mt-5 text-3xl font-semibold text-slate-100 md:text-4xl">Audit Trail</h2>
-                <p class="mt-3 max-w-3xl text-sm leading-6 text-slate-400">
+                <h2 class="mt-2 text-2xl font-semibold text-slate-100">Audit Trail</h2>
+                <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
                     Review who performed important actions across the app. Activity logs can only be deleted by users with the right permission.
                 </p>
             </div>
 
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
-                <input type="text" wire:model.live.debounce.300ms="search" class="input sm:w-[20rem]" placeholder="Search name, email, or action">
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <input type="text" wire:model.live.debounce.300ms="search" class="input sm:w-72" placeholder="Search name, email, or action">
             </div>
         </div>
 
         @if (session('status'))
-            <div class="mt-6 rounded-2xl border border-emerald-800 bg-emerald-950/40 px-4 py-3 text-sm font-medium text-emerald-300">
+            <div class="mt-4 rounded-lg border border-emerald-800/70 bg-emerald-950/30 px-3 py-2 text-sm font-medium text-emerald-300">
                 {{ session('status') }}
             </div>
         @endif
     </section>
 
     <section class="table-card relative">
-        <div wire:loading.flex wire:target="gotoPage,nextPage,previousPage,search" class="absolute inset-0 z-20 hidden items-center justify-center rounded-[2rem] bg-white/12 backdrop-blur-md">
-            <div class="flex items-center gap-3 rounded-2xl border border-slate-700 bg-[#1d2023] px-5 py-4 text-sm font-medium text-slate-200">
+        <div wire:loading.flex wire:target="gotoPage,nextPage,previousPage,search" class="absolute inset-0 z-20 hidden items-center justify-center rounded-xl bg-black/20 backdrop-blur-md">
+            <div class="flex items-center gap-3 rounded-lg border border-white/10 bg-[#12161b] px-4 py-3 text-sm font-medium text-slate-200">
                 <svg class="h-5 w-5 animate-spin text-brand-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-90" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
@@ -36,11 +36,11 @@
             <table class="min-w-full">
                 <thead class="table-head">
                     <tr>
-                        <th class="px-8 py-6">Name</th>
-                        <th class="px-8 py-6">Email</th>
-                        <th class="px-8 py-6">Action</th>
-                        <th class="px-8 py-6">Timestamp</th>
-                        <th class="px-8 py-6 text-right">Actions</th>
+                        <th class="px-5 py-3">Name</th>
+                        <th class="px-5 py-3">Email</th>
+                        <th class="px-5 py-3">Action</th>
+                        <th class="px-5 py-3">Timestamp</th>
+                        <th class="px-5 py-3 text-right">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -55,21 +55,21 @@
                             <td class="table-cell">
                                 <div class="flex justify-end gap-2">
                                     @can('activities.delete')
-                                        <button type="button" wire:click="confirmDelete({{ $activity->id }})" class="btn-danger px-5 py-2.5">Delete</button>
+                                        <button type="button" wire:click="confirmDelete({{ $activity->id }})" class="btn-danger px-3 py-1.5">Delete</button>
                                     @endcan
                                 </div>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-8 py-14 text-center text-sm text-slate-500">No activity logs found.</td>
+                            <td colspan="5" class="px-5 py-10 text-center text-sm text-slate-500">No activity logs found.</td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
 
-        <div class="px-8 py-4">
+        <div class="px-5 py-3">
             {{ $activities->links() }}
         </div>
     </section>

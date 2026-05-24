@@ -57,15 +57,15 @@ return [
             'notifications.delete',
         ],
     ],
-    // [
-    //     'key' => 'modules',
-    //     'label' => 'Modules',
-    //     'route' => 'modules.index',
-    //     'permission' => 'modules.view',
-    //     'permissions' => [
-    //         'modules.create',
-    //         'modules.update',
-    //         'modules.delete',
-    //     ],
-    // ],
+    [
+        'key' => 'modules',
+        'label' => 'Module Builder',
+        'route' => 'modules.builder',
+        'permission' => 'modules.view',
+        'permissions' => [
+            'modules.create',
+            'modules.update',
+            'modules.delete',
+        ],
+    ],
 ];

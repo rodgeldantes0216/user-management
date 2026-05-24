@@ -1,10 +1,10 @@
-<div class="space-y-6">
-    <section class="content-panel px-7 py-7 sm:px-10 sm:py-8">
-        <div class="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
+<div class="space-y-4">
+    <section class="content-panel px-5 py-4">
+        <div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div>
                 <p class="section-kicker">Administration</p>
-                <h2 class="mt-5 text-3xl font-semibold text-slate-100 md:text-4xl">Roles & Permissions</h2>
-                <p class="mt-3 max-w-3xl text-sm leading-6 text-slate-400">
+                <h2 class="mt-2 text-2xl font-semibold text-slate-100">Roles & Permissions</h2>
+                <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
                     Navigation permissions are synced automatically from the app navigation config. Add a new nav item there and its permission will be created for you.
                 </p>
             </div>
@@ -13,28 +13,28 @@
         </div>
 
         @if (session('status'))
-            <div class="mt-6 rounded-2xl border border-emerald-800 bg-emerald-950/40 px-4 py-3 text-sm font-medium text-emerald-300">
+            <div class="mt-4 rounded-lg border border-emerald-800/70 bg-emerald-950/30 px-3 py-2 text-sm font-medium text-emerald-300">
                 {{ session('status') }}
             </div>
         @endif
     </section>
 
-    <section class="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+    <section class="grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
         <div class="table-card overflow-hidden">
-            <div class="border-b border-slate-800 px-8 py-5">
-                <h3 class="text-lg font-semibold text-slate-100">Roles</h3>
+            <div class="border-b border-white/[0.055] px-5 py-3">
+                <h3 class="text-base font-semibold text-slate-100">Roles</h3>
             </div>
-            <div class="divide-y divide-slate-800">
+            <div class="divide-y divide-white/[0.055]">
                 @foreach ($roles as $role)
-                    <div class="flex flex-col gap-4 px-8 py-5 lg:flex-row lg:items-center lg:justify-between">
+                    <div class="flex flex-col gap-3 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
                         <div>
-                            <p class="text-lg font-semibold text-slate-100">{{ $role->label }}</p>
-                            <p class="text-sm uppercase tracking-[0.24em] text-slate-500">{{ $role->name }}</p>
+                            <p class="text-sm font-semibold text-slate-100">{{ $role->label }}</p>
+                            <p class="text-[11px] uppercase tracking-[0.16em] text-slate-500">{{ $role->name }}</p>
                             <p class="mt-2 text-sm text-slate-400">{{ $role->users_count }} users • {{ $role->permissions->count() }} permissions</p>
                         </div>
                         <div class="flex gap-2">
-                            <button type="button" wire:click="edit({{ $role->id }})" class="btn-secondary px-4 py-2.5">Edit</button>
-                            <button type="button" wire:click="delete({{ $role->id }})" class="btn-danger px-4 py-2.5">Delete</button>
+                            <button type="button" wire:click="edit({{ $role->id }})" class="btn-secondary px-3 py-1.5">Edit</button>
+                            <button type="button" wire:click="delete({{ $role->id }})" class="btn-danger px-3 py-1.5">Delete</button>
                         </div>
                     </div>
                 @endforeach
@@ -42,13 +42,13 @@
         </div>
 
         <div class="table-card overflow-hidden">
-            <div class="border-b border-slate-800 px-8 py-5">
-                <h3 class="text-lg font-semibold text-slate-100">Available permissions</h3>
+            <div class="border-b border-white/[0.055] px-5 py-3">
+                <h3 class="text-base font-semibold text-slate-100">Available permissions</h3>
             </div>
-            <div class="space-y-6 px-8 py-6">
+            <div class="space-y-4 px-5 py-4">
                 @foreach ($permissions as $group => $groupPermissions)
                     <div>
-                        <p class="text-sm uppercase tracking-[0.26em] text-slate-500">{{ $group }}</p>
+                        <p class="text-[11px] uppercase tracking-[0.16em] text-slate-500">{{ $group }}</p>
                         <div class="mt-3 flex flex-wrap gap-2">
                             @foreach ($groupPermissions as $permission)
                                 <span class="badge-role">{{ $permission->name }}</span>
@@ -88,11 +88,11 @@
 
                     <div class="space-y-5">
                         @foreach ($permissions as $group => $groupPermissions)
-                            <div class="rounded-3xl border border-slate-800 p-5">
-                                <p class="text-sm uppercase tracking-[0.26em] text-slate-500">{{ $group }}</p>
+                            <div class="rounded-xl border border-white/[0.06] p-4">
+                                <p class="text-[11px] uppercase tracking-[0.16em] text-slate-500">{{ $group }}</p>
                                 <div class="mt-4 grid gap-3 sm:grid-cols-2">
                                     @foreach ($groupPermissions as $permission)
-                                        <label class="flex items-center gap-3 rounded-2xl border border-slate-800 px-4 py-3 text-sm text-slate-300">
+                                        <label class="flex items-center gap-3 rounded-lg border border-white/[0.06] px-3 py-2.5 text-sm text-slate-300">
                                             <input type="checkbox" wire:model="selectedPermissions" value="{{ $permission->name }}" class="h-4 w-4 rounded border-slate-700 bg-transparent text-brand-500 focus:ring-0">
                                             <span>{{ $permission->label }}</span>
                                         </label>

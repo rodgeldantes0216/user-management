@@ -11,6 +11,13 @@ This repository contains a Laravel-based user and admin management system built 
 - **Settings:** application settings persisted via a `settings` table and accessed through a `Settings` helper.
 - **Notifications:** app-level notifications stored in the `app_notifications` table and surfaced in the UI.
 - **Livewire UI:** SPA-like navigation using Livewire full-page components and `wire:navigate` with Blade layouts and Tailwind styling.
+- **Module Builder:** dynamic CRUD module generation with built-in module record browsing and module scaffolding support.
+
+## Recent updates
+- Added admin-managed application settings persisted through a `settings` table.
+- Added managed roles and permissions with policy guards and a permission registry.
+- Added an app notifications center with `app_notifications`.
+- Added activity/audit logging via `activity_logs` for admin auditing.
 
 ## Stack
 
@@ -22,6 +29,8 @@ This repository contains a Laravel-based user and admin management system built 
 ## Key files and places to look
 - [app/Livewire/](app/Livewire/) — Livewire page components for auth, dashboard, users, roles, settings, notifications, activities.
 - [app/Models/](app/Models/) — `User`, `Role`, `Permission`, `ActivityLog`, `Setting`, `AppNotification`.
+- [app/Livewire/Modules/](app/Livewire/Modules/) — module builder and module record pages for dynamically generated CRUD modules.
+- [app/Services/ModuleGenerator.php](app/Services/ModuleGenerator.php) — dynamic CRUD module generator.
 - [app/Support/PermissionRegistry.php](app/Support/PermissionRegistry.php) — permission registration and syncing.
 - [app/Support/Settings.php](app/Support/Settings.php) — settings helper for reading/writing system settings.
 - [database/factories/UserFactory.php](database/factories/UserFactory.php) — user factory used by seeders and tests.
@@ -84,7 +93,7 @@ After seeding, the DatabaseSeeder creates a default admin and test user:
 ## Routes (high level)
 - Guest: `/login`, `/register`
 - Authenticated: `/dashboard`
-- Admin: `/users`, `/roles`, `/settings`, `/activities`, `/notifications`
+- Admin: `/users`, `/roles`, `/settings`, `/activities`, `/notifications`, `/modules/builder`, `/modules/{module}`
 
 ## Testing
 
@@ -100,6 +109,7 @@ php artisan test
 - Debugbar is installed for local development and will display runtime profiling information when enabled.
 - Permissions are registered via `PermissionRegistry::syncAndRegister()` at seed time; add new permissions to the registry to have them seeded and available.
 - The `LargeUserSeeder` is intentionally chunked to avoid memory spikes during mass insertion; monitor database and disk usage when running it.
+- The CRUD Maker / Module Builder is documented in [docs/MODULE_BUILDER.md](docs/MODULE_BUILDER.md).
 
 ## Contributing
 

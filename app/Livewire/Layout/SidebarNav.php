@@ -3,6 +3,8 @@
 namespace App\Livewire\Layout;
 
 use App\Models\AppNotification;
+use App\Models\Module;
+use Illuminate\Support\Facades\Schema;
 use Livewire\Component;
 
 class SidebarNav extends Component
@@ -22,7 +24,27 @@ class SidebarNav extends Component
             ->map(fn (array $item) => [...$item, 'badge' => $item['key'] === 'notifications'
                 ? array_sum($counts)
                 : ($counts[$item['key']] ?? 0),
-            ])
+            ]);
+
+        if (Schema::hasTable('modules')) {
+            $generatedItems = Module::query()
+                ->whereNotNull('generated_at')
+                ->orderBy('name')
+                ->get()
+                ->filter(fn (Module $module) => auth()->user()->hasPermissionTo($module->permissionName('view')))
+                ->map(fn (Module $module) => [
+                    'key' => $module->table_name,
+                    'label' => $module->name,
+                    'route' => 'modules.records',
+                    'route_params' => [$module->table_name],
+                    'permission' => $module->permissionName('view'),
+                    'badge' => $counts[$module->table_name] ?? 0,
+                ]);
+
+            $items = $items->merge($generatedItems);
+        }
+
+        $items = $items
             ->values()
             ->all();
 

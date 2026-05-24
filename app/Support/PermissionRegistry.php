@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\Module;
 use App\Models\Permission;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
@@ -23,6 +24,22 @@ class PermissionRegistry
                     'group' => Str::before($permissionName, '.'),
                 ],
             );
+        }
+
+        if (Schema::hasTable('modules')) {
+            Module::query()->each(function (Module $module) {
+                foreach (['view', 'create', 'update', 'delete'] as $ability) {
+                    $permissionName = $module->permissionName($ability);
+
+                    Permission::firstOrCreate(
+                        ['name' => $permissionName],
+                        [
+                            'label' => Str::of($permissionName)->replace('.', ' ')->title()->toString(),
+                            'group' => $module->table_name,
+                        ],
+                    );
+                }
+            });
         }
 
         Permission::query()->pluck('name')->each(function (string $permissionName) {

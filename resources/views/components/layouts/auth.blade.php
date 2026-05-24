@@ -11,12 +11,12 @@
         <div class="relative isolate flex min-h-screen items-center justify-center overflow-hidden px-4 py-10">
             <div class="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_rgba(59,109,244,0.12),transparent_32%),radial-gradient(circle_at_bottom,_rgba(14,165,233,0.14),transparent_24%)]"></div>
 
-            <div class="grid w-full max-w-6xl gap-8 lg:grid-cols-[1.15fr_0.85fr]">
-                <section class="hidden rounded-[2rem] bg-slate-950 px-10 py-12 text-white shadow-2xl lg:flex lg:flex-col lg:justify-between">
+            <div class="grid w-full max-w-5xl gap-6 lg:grid-cols-[1fr_0.78fr]">
+                <section class="hidden rounded-xl border border-white/[0.06] bg-slate-950/80 px-7 py-8 text-white shadow-2xl lg:flex lg:flex-col lg:justify-between">
                     <div>
-                        <p class="text-3xl uppercase tracking-[0.35em] text-brand-200">User Management</p>
-                        <h1 class="mt-6 max-w-md text-5xl font-semibold leading-tight">Clean workspace for Auth and Admin control.</h1>
-                        <p class="mt-6 max-w-xl text-base leading-7 text-slate-300">
+                        <p class="section-kicker">User Management</p>
+                        <h1 class="mt-4 max-w-md text-3xl font-semibold leading-tight">Clean workspace for Auth and Admin control.</h1>
+                        <p class="mt-4 max-w-xl text-sm leading-6 text-slate-400">
                             SPA-style navigation, role-based access, and a modern layout inspired by Flux UI.
                         </p>
                     </div>
@@ -40,7 +40,7 @@
                     <p class="text-sm text-slate-300">Current PH Time: {{ now()->setTimezone('Asia/Manila')->format('h:i:s A') }}</p>
                 </section>
 
-                <section class="panel px-6 py-8 sm:px-10 sm:py-10">
+                <section class="panel px-5 py-6 sm:px-7 sm:py-7">
                     {{ $slot }}
                 </section>
             </div>

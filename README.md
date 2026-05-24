@@ -1,330 +1,113 @@
-# Laravel User Management
+# User Management (Laravel)
 
-A simple single-module Laravel application for user management with authentication, authorization, and SPA-style navigation using Livewire v4.
+This repository contains a Laravel-based user and admin management system built with Livewire full-page components. The app includes authentication, role & permission support, notifications, settings, activity/audit logging, and an admin UI for managing users, roles, and system settings.
 
-This project is built around one core module:
-
-- User authentication
-- Role-based authorization
-- Admin-only user management CRUD
+**Primary features**
+- **Authentication:** registration, login, logout, session-based auth, and optional email verification hooks.
+- **Authorization:** role-based rules stored on the `users` table plus finer-grained permissions; policy-based checks via `UserPolicy`.
+- **User Management:** admin CRUD for users with search, filtering, pagination, and modals for create/edit/delete workflows.
+- **Roles & Permissions:** role model and permission registry with seeding and sync support.
+- **Activity / Audit Logs:** activities recorded to `activity_logs` for admin auditing.
+- **Settings:** application settings persisted via a `settings` table and accessed through a `Settings` helper.
+- **Notifications:** app-level notifications stored in the `app_notifications` table and surfaced in the UI.
+- **Livewire UI:** SPA-like navigation using Livewire full-page components and `wire:navigate` with Blade layouts and Tailwind styling.
 
 ## Stack
 
-- PHP 8.2+
-- Laravel 12
-- Livewire 4
-- Tailwind CSS 4
-- Vite 7
-- SQLite by default for local development
+- **PHP:** 8.2+
+- **Framework:** Laravel 12
+- **UI:** Livewire 4, Tailwind CSS
+- **Build tool:** Vite
 
-## What This App Does
+## Key files and places to look
+- [app/Livewire/](app/Livewire/) — Livewire page components for auth, dashboard, users, roles, settings, notifications, activities.
+- [app/Models/](app/Models/) — `User`, `Role`, `Permission`, `ActivityLog`, `Setting`, `AppNotification`.
+- [app/Support/PermissionRegistry.php](app/Support/PermissionRegistry.php) — permission registration and syncing.
+- [app/Support/Settings.php](app/Support/Settings.php) — settings helper for reading/writing system settings.
+- [database/factories/UserFactory.php](database/factories/UserFactory.php) — user factory used by seeders and tests.
+- [database/seeders/DatabaseSeeder.php](database/seeders/DatabaseSeeder.php) — seeds initial roles, permissions, admin user and settings.
+- [database/seeders/LargeUserSeeder.php](database/seeders/LargeUserSeeder.php) — helper seeder that creates 50,000 users in chunks for load testing.
 
-The app provides a lightweight user management system with two roles:
+## Quick start (local)
 
-- `admin`
-- `user`
-
-Regular users can:
-
-- Register an account
-- Sign in
-- Access the dashboard
-- Sign out
-
-Administrators can:
-
-- Access the dashboard
-- Open the user management page
-- Search users
-- Filter users by role
-- Create users
-- Edit users
-- Delete users except themselves
-
-Navigation between authenticated pages uses Livewire full-page components and `wire:navigate` for an SPA-like experience without adding a frontend SPA framework.
-
-## Features
-
-### Authentication
-
-- Login page
-- Registration page
-- Logout flow
-- Session-based authentication
-
-### Authorization
-
-- Role-based access using a `role` column on the `users` table
-- Admin-only access to the user management screen
-- Policy-based authorization via `UserPolicy`
-
-### User Management
-
-- Paginated user listing
-- Search by name or email
-- Filter by role
-- Create user modal
-- Edit user modal
-- Delete confirmation modal
-
-### UI
-
-- Flux-inspired styled layout
-- Responsive sidebar app shell
-- Auth layout and dashboard layout
-- Tailwind CSS utility styling
-
-## Important Note About Flux UI
-
-This repository includes a Composer repository entry for Flux UI:
-
-`https://composer.fluxui.dev`
-
-At the time this app was built, Composer package installation was blocked by authentication on that private repository. Because of that:
-
-- The app uses Livewire v4
-- The UI is styled in a Flux-inspired way
-- The real `livewire/flux` package is not currently installed
-
-If you have valid Flux credentials, you can install the official package later and swap the custom Blade markup to Flux components.
-
-## Project Structure
-
-```text
-app/
-├── Livewire/
-│   ├── Auth/
-│   │   ├── Login.php
-│   │   └── Register.php
-│   ├── Users/
-│   │   └── Index.php
-│   └── Dashboard.php
-├── Models/
-│   └── User.php
-└── Policies/
-    └── UserPolicy.php
-
-database/
-├── factories/
-│   └── UserFactory.php
-├── migrations/
-│   └── 2026_05_24_000003_add_role_to_users_table.php
-└── seeders/
-    └── DatabaseSeeder.php
-
-resources/
-├── css/
-│   └── app.css
-└── views/
-    ├── components/
-    │   └── layouts/
-    │       ├── app.blade.php
-    │       └── auth.blade.php
-    └── livewire/
-        ├── auth/
-        │   ├── login.blade.php
-        │   └── register.blade.php
-        ├── users/
-        │   └── index.blade.php
-        └── dashboard.blade.php
-
-routes/
-└── web.php
-
-tests/
-└── Feature/
-    ├── AuthFlowTest.php
-    └── UserManagementTest.php
-```
-
-## Default Accounts
-
-After seeding the database, these accounts are available:
-
-| Role | Email | Password |
-|---|---|---|
-| Admin | `admin@example.com` | `password` |
-| User | `test@example.com` | `password` |
-
-## Local Setup
-
-### 1. Clone the project
+1. Clone and install dependencies
 
 ```bash
 git clone <your-repository-url>
 cd user-management
-```
-
-### 2. Install PHP dependencies
-
-```bash
 composer install
-```
-
-### 3. Install frontend dependencies
-
-```bash
 npm install
 ```
 
-### 4. Configure environment
-
-Copy `.env.example` to `.env` if needed, then generate the app key:
+2. Configure environment
 
 ```bash
+cp .env.example .env
 php artisan key:generate
 ```
 
-### 5. Configure the database
-
-By default, this project already includes `database/database.sqlite`.
-
-Make sure your `.env` points to SQLite, for example:
+3. Use SQLite (default) or configure your preferred DB in `.env`:
 
 ```env
 DB_CONNECTION=sqlite
 DB_DATABASE=database/database.sqlite
 ```
 
-If you prefer MySQL or another database, update your `.env` accordingly.
-
-### 6. Run migrations and seed data
+4. Run migrations and seeders
 
 ```bash
 php artisan migrate --seed
 ```
 
-If you want a fresh reset:
+To seed the large test dataset (50k users) separately:
 
 ```bash
-php artisan migrate:fresh --seed
+php artisan db:seed --class=LargeUserSeeder
 ```
 
-### 7. Start the app
-
-Run the Laravel development stack:
-
-```bash
-composer run dev
-```
-
-This starts:
-
-- Laravel local server
-- Queue listener
-- Laravel Pail logs
-- Vite dev server
-
-If you prefer running them separately:
+5. Run the app
 
 ```bash
 php artisan serve
 npm run dev
 ```
 
-## Production Build
+## Default accounts
 
-To build frontend assets for production:
+After seeding, the DatabaseSeeder creates a default admin and test user:
 
-```bash
-npm run build
-```
-
-On Windows PowerShell with restricted script execution, use:
-
-```powershell
-npm.cmd run build
-```
-
-## Available Routes
-
-### Guest
-
-- `/login`
-- `/register`
-
-### Authenticated
-
-- `/dashboard`
-
-### Admin Only
-
-- `/users`
-
-### Redirects
-
-- `/` redirects to `/dashboard`
-
-## Authorization Rules
-
-The app uses `UserPolicy` to protect user management actions.
-
-| Action | Admin | User |
+| Role | Email | Password |
 |---|---|---|
-| View dashboard | Yes | Yes |
-| View user list | Yes | No |
-| Create user | Yes | No |
-| Edit user | Yes | No |
-| Delete other users | Yes | No |
-| Delete self | No | No |
+| Admin | admin@example.com | password |
+| User | test@example.com | password |
 
-## SPA Behavior
-
-This project is not a JavaScript SPA in the React/Vue sense. Instead, it uses Livewire full-page components with:
-
-- `wire:navigate`
-- Livewire page components
-- Blade layouts for shared app shell rendering
-
-That gives the app:
-
-- Faster page transitions
-- Persistent app-like navigation feel
-- Laravel-first development without API layering
+## Routes (high level)
+- Guest: `/login`, `/register`
+- Authenticated: `/dashboard`
+- Admin: `/users`, `/roles`, `/settings`, `/activities`, `/notifications`
 
 ## Testing
 
-Run the test suite with:
+Run tests with:
 
 ```bash
 php artisan test
 ```
 
-Current automated test coverage includes:
+## Notes & maintenance
 
-- User registration
-- User login
-- Root redirect behavior
-- Admin authorization
-- User CRUD flow
+- The UI is implemented using Livewire and Blade — no separate JS SPA framework is required.
+- Permissions are registered via `PermissionRegistry::syncAndRegister()` at seed time; add new permissions to the registry to have them seeded and available.
+- The `LargeUserSeeder` is intentionally chunked to avoid memory spikes during mass insertion; monitor database and disk usage when running it.
 
-## Verified Commands
+## Contributing
 
-These commands were successfully run against this project:
-
-```bash
-php artisan test
-php artisan migrate:fresh --seed
-npm.cmd run build
-```
-
-## Notes for Future Improvements
-
-Possible next steps if you want to expand the app:
-
-- Install the real Flux UI package once Composer authentication is available
-- Add password reset
-- Add profile management
-- Add email verification
-- Add audit logs for admin actions
-- Add bulk user actions
-- Add role and permission management beyond `admin` and `user`
+Contributions are welcome. Please open issues or PRs for bug fixes, features, or documentation improvements.
 
 ## License
 
-This project is open-sourced under the MIT license.
+MIT
 
 ## Author
 
-Rodgel Dantes 
-Fullstack Web-Software Developer
+Rodgel Dantes

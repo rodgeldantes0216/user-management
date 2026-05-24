@@ -8,4 +8,78 @@
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+    --color-brand-50: #f4f8ff;
+    --color-brand-100: #e8f0ff;
+    --color-brand-200: #c9dbff;
+    --color-brand-300: #9fbdff;
+    --color-brand-400: #6c96ff;
+    --color-brand-500: #3b6df4;
+    --color-brand-600: #2956d9;
+    --color-brand-700: #2448b4;
+    --color-brand-800: #233d91;
+    --color-brand-900: #223576;
+    --color-brand-950: #18224a;
+}
+
+body {
+    @apply bg-slate-100 text-slate-900 antialiased;
+}
+
+[x-cloak] {
+    display: none !important;
+}
+
+.app-shell {
+    background:
+        radial-gradient(circle at top left, rgba(59, 109, 244, 0.18), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.14), transparent 24%),
+        linear-gradient(180deg, #f8fbff 0%, #f1f5f9 100%);
+}
+
+.panel {
+    @apply rounded-3xl border border-white/70 bg-white/90 shadow-[0_20px_60px_-24px_rgba(15,23,42,0.28)] backdrop-blur;
+}
+
+.nav-link {
+    @apply flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-950;
+}
+
+.nav-link-active {
+    @apply bg-brand-500 text-white shadow-lg shadow-brand-500/30 hover:bg-brand-600 hover:text-white;
+}
+
+.btn-primary {
+    @apply inline-flex items-center justify-center rounded-2xl bg-brand-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-60;
+}
+
+.btn-secondary {
+    @apply inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50;
+}
+
+.btn-danger {
+    @apply inline-flex items-center justify-center rounded-2xl bg-rose-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:opacity-60;
+}
+
+.input {
+    @apply w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-brand-400 focus:ring-4 focus:ring-brand-100;
+}
+
+.select {
+    @apply w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 pr-10 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-brand-400 focus:ring-4 focus:ring-brand-100;
+}
+
+.label {
+    @apply mb-2 block text-sm font-medium text-slate-700;
+}
+
+.table-card {
+    @apply overflow-hidden rounded-3xl border border-slate-200 bg-white;
+}
+
+.table-head {
+    @apply bg-slate-50 text-left text-xs font-semibold uppercase tracking-[0.18em] text-slate-500;
+}
+
+.table-cell {
+    @apply px-6 py-4 text-sm text-slate-700;
 }

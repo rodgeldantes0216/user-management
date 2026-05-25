@@ -186,6 +186,9 @@ class Records extends Component
 
     public function render()
     {
+        $this->sortField = $this->sanitizeSortField();
+        $this->sortDirection = $this->sanitizeSortDirection();
+
         $records = $this->baseQuery()
             ->when($this->search !== '' && $this->searchableFields()->isNotEmpty(), function ($query) {
                 $query->where(function ($nested) {
@@ -204,6 +207,20 @@ class Records extends Component
             'fields' => $this->moduleDefinition->fields,
             'filterFields' => $this->filterFields(),
         ]);
+    }
+
+    protected function sanitizeSortField(): string
+    {
+        $allowed = array_merge(['id'], $this->moduleDefinition->fields->pluck('name')->all());
+
+        return in_array($this->sortField, $allowed, true)
+            ? $this->sortField
+            : 'id';
+    }
+
+    protected function sanitizeSortDirection(): string
+    {
+        return $this->sortDirection === 'asc' ? 'asc' : 'desc';
     }
 
     public function paginationView(): string
@@ -264,8 +281,20 @@ class Records extends Component
             'checkbox', 'toggle' => [...$rules, 'boolean'],
             'date' => [...$rules, 'date'],
             'datetime' => [...$rules, 'date'],
-            'file' => [$this->editingRecordId ? 'nullable' : ($field->required ? 'required' : 'nullable'), 'file', 'max:10240'],
-            'image' => [$this->editingRecordId ? 'nullable' : ($field->required ? 'required' : 'nullable'), 'image', 'max:5120'],
+            'file' => [
+                $this->editingRecordId ? 'nullable' : ($field->required ? 'required' : 'nullable'),
+                'file',
+                'max:10240',
+                'mimes:pdf,doc,docx,xls,xlsx,csv,txt,zip',
+                'mimetypes:application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,text/plain,application/zip',
+            ],
+            'image' => [
+                $this->editingRecordId ? 'nullable' : ($field->required ? 'required' : 'nullable'),
+                'image',
+                'mimes:jpg,jpeg,png,gif,svg,webp',
+                'mimetypes:image/jpeg,image/png,image/gif,image/svg+xml,image/webp',
+                'max:5120',
+            ],
             default => [...$rules, 'string', 'max:2000'],
         };
     }

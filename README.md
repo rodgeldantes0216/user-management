@@ -10,10 +10,13 @@ This repository contains a Laravel-based user and admin management system built 
 - **Activity / Audit Logs:** activities recorded to `activity_logs` for admin auditing.
 - **Settings:** application settings persisted via a `settings` table and accessed through a `Settings` helper.
 - **Notifications:** app-level notifications stored in the `app_notifications` table and surfaced in the UI.
+- **Dashboard analytics:** interactive dashboard charts for signup trends and role distribution using Chart.js.
 - **Livewire UI:** SPA-like navigation using Livewire full-page components and `wire:navigate` with Blade layouts and Tailwind styling.
 - **Module Builder:** dynamic CRUD module generation with built-in module record browsing and module scaffolding support.
 
 ## Recent updates
+- Added interactive dashboard graphs for user signup trends and role distribution.
+- Added auth throttling to login and registration to reduce brute-force risk.
 - Added admin-managed application settings persisted through a `settings` table.
 - Added managed roles and permissions with policy guards and a permission registry.
 - Added an app notifications center with `app_notifications`.
@@ -25,6 +28,7 @@ This repository contains a Laravel-based user and admin management system built 
 - **Framework:** Laravel 12
 - **UI:** Livewire 4, Tailwind CSS
 - **Build tool:** Vite
+- **Charts:** Chart.js for interactive dashboard visualizations
 
 ## Key files and places to look
 - [app/Livewire/](app/Livewire/) — Livewire page components for auth, dashboard, users, roles, settings, notifications, activities.
@@ -33,6 +37,7 @@ This repository contains a Laravel-based user and admin management system built 
 - [app/Services/ModuleGenerator.php](app/Services/ModuleGenerator.php) — dynamic CRUD module generator.
 - [app/Support/PermissionRegistry.php](app/Support/PermissionRegistry.php) — permission registration and syncing.
 - [app/Support/Settings.php](app/Support/Settings.php) — settings helper for reading/writing system settings.
+- [resources/js/dashboard-charts.js](resources/js/dashboard-charts.js) — chart initialization for the dashboard.
 - [database/factories/UserFactory.php](database/factories/UserFactory.php) — user factory used by seeders and tests.
 - [database/seeders/DatabaseSeeder.php](database/seeders/DatabaseSeeder.php) — seeds initial roles, permissions, admin user and settings.
 - [database/seeders/LargeUserSeeder.php](database/seeders/LargeUserSeeder.php) — helper seeder that creates 50,000 users in chunks for load testing.

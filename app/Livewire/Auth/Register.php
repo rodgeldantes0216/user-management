@@ -5,6 +5,9 @@ namespace App\Livewire\Auth;
 use App\Models\User;
 use App\Support\Settings;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -25,6 +28,16 @@ class Register extends Component
     {
         abort_unless(Settings::all()['feature_registration_enabled'], 403);
 
+        $throttleKey = Str::lower($this->email).'|'.request()->ip();
+
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+
+            throw ValidationException::withMessages([
+                'email' => "Too many registration attempts. Please try again in {$seconds} seconds.",
+            ]);
+        }
+
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
@@ -41,6 +54,9 @@ class Register extends Component
         $user->syncRoleByName(User::ROLE_USER);
 
         Auth::login($user);
+
+        RateLimiter::clear($throttleKey);
+
         if (request()->hasSession()) {
             request()->session()->regenerate();
         }

@@ -30,6 +30,32 @@
         </article>
     </section>
 
+    <section class="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
+        <article class="content-panel px-5 py-4">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <h3 class="text-base font-semibold text-slate-100">User signups</h3>
+                    <p class="mt-1 text-sm text-slate-500">New users over the last 7 days.</p>
+                </div>
+            </div>
+            <div class="mt-5 h-72">
+                <canvas id="dashboard-signup-chart" class="w-full h-full"></canvas>
+            </div>
+        </article>
+
+        <article class="content-panel px-5 py-4">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <h3 class="text-base font-semibold text-slate-100">Role distribution</h3>
+                    <p class="mt-1 text-sm text-slate-500">Breakdown of users by role.</p>
+                </div>
+            </div>
+            <div class="mt-5 h-72">
+                <canvas id="dashboard-role-chart" class="w-full h-full"></canvas>
+            </div>
+        </article>
+    </section>
+
     <section class="table-card px-5 py-4">
         <div class="flex items-center justify-between gap-4">
             <div>
@@ -50,4 +76,15 @@
             @endforeach
         </div>
     </section>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            window.initializeDashboardCharts?.({
+                roleLabels: @json(array_keys($roleCounts)),
+                roleValues: @json(array_values($roleCounts)),
+                signupLabels: @json($signupLabels),
+                signupValues: @json($signupCounts),
+            });
+        });
+    </script>
 </div>

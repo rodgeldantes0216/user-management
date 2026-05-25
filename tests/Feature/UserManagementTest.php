@@ -91,4 +91,37 @@ class UserManagementTest extends TestCase
             'action' => 'Deleted user',
         ]);
     }
+
+    public function test_user_table_shows_presence_statuses(): void
+    {
+        $admin = User::factory()->create([
+            'role' => User::ROLE_ADMIN,
+        ]);
+
+        User::factory()->create([
+            'name' => 'Online User',
+            'last_seen_at' => now(),
+            'logged_out_at' => null,
+        ]);
+
+        User::factory()->create([
+            'name' => 'Idle User',
+            'last_seen_at' => now()->subMinutes(10),
+            'logged_out_at' => null,
+        ]);
+
+        User::factory()->create([
+            'name' => 'Offline User',
+            'last_seen_at' => now()->subMinutes(3),
+            'logged_out_at' => now(),
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('users.index'))
+            ->assertOk()
+            ->assertSee('Status')
+            ->assertSee('Currently active')
+            ->assertSee('Active, no activity')
+            ->assertSee('Not active');
+    }
 }

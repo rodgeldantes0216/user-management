@@ -43,6 +43,7 @@
                         <th class="px-5 py-3">Name</th>
                         <th class="px-5 py-3">Email</th>
                         <th class="px-5 py-3">Role</th>
+                        <th class="px-5 py-3">Status</th>
                         <th class="px-5 py-3">Created</th>
                         <th class="px-5 py-3 text-right">Actions</th>
                     </tr>
@@ -57,6 +58,20 @@
                                     {{ $user->primaryRoleName() }}
                                 </span>
                             </td>
+                            <td class="table-cell">
+                                @php
+                                    $presenceStatus = $user->presenceStatus();
+                                    $presenceClasses = [
+                                        'online' => 'bg-emerald-400 shadow-[0_0_0_3px_rgba(52,211,153,0.15)]',
+                                        'idle' => 'bg-amber-400 shadow-[0_0_0_3px_rgba(251,191,36,0.15)]',
+                                        'offline' => 'bg-rose-500 shadow-[0_0_0_3px_rgba(244,63,94,0.15)]',
+                                    ][$presenceStatus];
+                                @endphp
+                                <span class="inline-flex items-center gap-2 text-xs font-medium text-slate-400">
+                                    <span class="h-2.5 w-2.5 rounded-full {{ $presenceClasses }}" aria-hidden="true"></span>
+                                    {{ $user->presenceLabel() }}
+                                </span>
+                            </td>
                             <td class="table-cell text-blue-100/95">{{ $user->created_at->format('M d, Y') }}</td>
                             <td class="table-cell">
                                 <div class="flex justify-end gap-2">
@@ -69,7 +84,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-5 py-10 text-center text-sm text-slate-500">No users matched your current filters.</td>
+                            <td colspan="6" class="px-5 py-10 text-center text-sm text-slate-500">No users matched your current filters.</td>
                         </tr>
                     @endforelse
                 </tbody>

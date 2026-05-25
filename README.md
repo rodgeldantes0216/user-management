@@ -1,20 +1,31 @@
 # User Management (Laravel)
 
-This repository contains a Laravel-based user and admin management system built with Livewire full-page components. The app includes authentication, role & permission support, notifications, settings, activity/audit logging, and an admin UI for managing users, roles, and system settings.
+This repository contains a Laravel-based user and admin management system built with Livewire full-page components. The app includes authentication, role and permission support, notifications, settings, activity/audit logging, profile management, dashboard and reports analytics, system health checks, and an admin UI for managing users, roles, and system settings.
 
 **Primary features**
-- **Authentication:** registration, login, logout, session-based auth, and optional email verification hooks.
+- **Authentication:** registration, login, logout, session-based auth, login throttling, and optional email verification hooks.
 - **Authorization:** role-based rules stored on the `users` table plus finer-grained permissions; policy-based checks via `UserPolicy`.
-- **User Management:** admin CRUD for users with search, filtering, pagination, and modals for create/edit/delete workflows.
+- **User Management:** admin CRUD for users with search, filtering, pagination, modals, and active/idle/offline presence indicators.
+- **User Presence:** `last_seen_at` and `logged_out_at` tracking with green, yellow, and red status dots in the users table.
 - **Roles & Permissions:** role model and permission registry with seeding and sync support.
-- **Activity / Audit Logs:** activities recorded to `activity_logs` for admin auditing.
+- **Activity / Audit Logs:** important actions and login events recorded to `activity_logs` for admin auditing and analytics.
+- **Profile Management:** user profile page with editable profile fields and profile picture support.
 - **Settings:** application settings persisted via a `settings` table and accessed through a `Settings` helper.
 - **Notifications:** app-level notifications stored in the `app_notifications` table and surfaced in the UI.
 - **Dashboard analytics:** interactive dashboard charts for signup trends and role distribution using Chart.js.
+- **Reports / Analytics:** operational analytics for user growth, permission usage, login trends, user presence, and system health signals.
+- **System Health:** detailed checks for database, cache, queue, failed jobs, mail configuration, storage links, writable paths, app key, debug mode, environment, session security, and lockfile hygiene.
+- **Theme Switching:** light/dark mode support through the app layout and theme toggle script.
 - **Livewire UI:** SPA-like navigation using Livewire full-page components and `wire:navigate` with Blade layouts and Tailwind styling.
 - **Module Builder:** dynamic CRUD module generation with built-in module record browsing and module scaffolding support.
 
-## Recent updates
+## Recent Updates
+
+- Added a Reports / Analytics module with charts for user growth, permission groups, login activity, and user presence.
+- Added user presence tracking using `last_seen_at` and `logged_out_at`, plus green/yellow/red status indicators in the users table.
+- Added a System Health page with infrastructure, filesystem, queue, mail, and security posture checks.
+- Added profile management fields and profile page support.
+- Added light/dark theme switching.
 - Added interactive dashboard graphs for user signup trends and role distribution.
 - Added auth throttling to login and registration to reduce brute-force risk.
 - Added admin-managed application settings persisted through a `settings` table.
@@ -28,25 +39,29 @@ This repository contains a Laravel-based user and admin management system built 
 - **Framework:** Laravel 12
 - **UI:** Livewire 4, Tailwind CSS
 - **Build tool:** Vite
-- **Charts:** Chart.js for interactive dashboard visualizations
+- **Charts:** Chart.js for interactive dashboard and reports visualizations
 
-## Key files and places to look
-- [app/Livewire/](app/Livewire/) — Livewire page components for auth, dashboard, users, roles, settings, notifications, activities.
-- [app/Models/](app/Models/) — `User`, `Role`, `Permission`, `ActivityLog`, `Setting`, `AppNotification`.
-- [app/Livewire/Modules/](app/Livewire/Modules/) — module builder and module record pages for dynamically generated CRUD modules.
-- [app/Services/ModuleGenerator.php](app/Services/ModuleGenerator.php) — dynamic CRUD module generator.
-- [app/Support/PermissionRegistry.php](app/Support/PermissionRegistry.php) — permission registration and syncing.
-- [app/Support/Settings.php](app/Support/Settings.php) — settings helper for reading/writing system settings.
-- [resources/js/dashboard-charts.js](resources/js/dashboard-charts.js) — chart initialization for the dashboard.
-- [database/factories/UserFactory.php](database/factories/UserFactory.php) — user factory used by seeders and tests.
-- [database/seeders/DatabaseSeeder.php](database/seeders/DatabaseSeeder.php) — seeds initial roles, permissions, admin user and settings.
-- [database/seeders/LargeUserSeeder.php](database/seeders/LargeUserSeeder.php) — helper seeder that creates 50,000 users in chunks for load testing.
+## Key Files And Places To Look
 
-## Project structure
+- [app/Livewire/](app/Livewire/) - Livewire page components for auth, dashboard, users, roles, settings, notifications, activities, reports, profile, and system health.
+- [app/Models/](app/Models/) - `User`, `Role`, `Permission`, `ActivityLog`, `Setting`, `AppNotification`.
+- [app/Livewire/Reports/Index.php](app/Livewire/Reports/Index.php) - reports and analytics data aggregation.
+- [app/Livewire/SystemHealth/Index.php](app/Livewire/SystemHealth/Index.php) - system health and security posture checks.
+- [app/Livewire/Modules/](app/Livewire/Modules/) - module builder and module record pages for dynamically generated CRUD modules.
+- [app/Http/Middleware/TrackUserActivity.php](app/Http/Middleware/TrackUserActivity.php) - updates user presence timestamps during authenticated requests.
+- [app/Services/ModuleGenerator.php](app/Services/ModuleGenerator.php) - dynamic CRUD module generator.
+- [app/Support/PermissionRegistry.php](app/Support/PermissionRegistry.php) - permission registration and syncing.
+- [app/Support/Settings.php](app/Support/Settings.php) - settings helper for reading/writing system settings.
+- [resources/js/dashboard-charts.js](resources/js/dashboard-charts.js) - chart initialization for the dashboard and reports pages.
+- [database/factories/UserFactory.php](database/factories/UserFactory.php) - user factory used by seeders and tests.
+- [database/seeders/DatabaseSeeder.php](database/seeders/DatabaseSeeder.php) - seeds initial roles, permissions, admin user, and settings.
+- [database/seeders/LargeUserSeeder.php](database/seeders/LargeUserSeeder.php) - helper seeder that creates 50,000 users in chunks for load testing.
+
+## Project Structure
 
 Top-level layout (important folders and files):
 
-```
+```text
 artisan
 composer.json
 package.json
@@ -54,27 +69,28 @@ phpunit.xml
 README.md
 vite.config.js
 app/
-	Livewire/
-	Models/
-	Services/
-	Support/
+    Http/
+    Livewire/
+    Models/
+    Services/
+    Support/
 bootstrap/
 config/
 database/
-	migrations/
-	seeders/
+    migrations/
+    seeders/
 public/
 resources/
-	css/
-	js/
-	views/
+    css/
+    js/
+    views/
 routes/
 storage/
 tests/
 vendor/
 ```
 
-## Quick start (local)
+## Quick Start
 
 1. Clone and install dependencies
 
@@ -118,7 +134,14 @@ php artisan serve
 npm run dev
 ```
 
-## Default accounts
+On Windows PowerShell, if `npm run dev` or `npm run build` is blocked by script execution policy, use:
+
+```powershell
+npm.cmd run dev
+npm.cmd run build
+```
+
+## Default Accounts
 
 After seeding, the DatabaseSeeder creates a default admin and test user:
 
@@ -127,10 +150,11 @@ After seeding, the DatabaseSeeder creates a default admin and test user:
 | Admin | admin@example.com | password |
 | User | test@example.com | password |
 
-## Routes (high level)
+## Routes
+
 - Guest: `/login`, `/register`
-- Authenticated: `/dashboard`
-- Admin: `/users`, `/roles`, `/settings`, `/activities`, `/notifications`, `/modules/builder`, `/modules/{module}`
+- Authenticated: `/dashboard`, `/profile`
+- Admin: `/users`, `/roles`, `/reports`, `/system-health`, `/settings`, `/activities`, `/notifications`, `/modules/builder`, `/modules/{module}`
 
 ## Testing
 
@@ -140,11 +164,28 @@ Run tests with:
 php artisan test
 ```
 
-## Notes & maintenance
+Useful focused test slices:
 
-- The UI is implemented using Livewire and Blade — no separate JS SPA framework is required.
+```bash
+php artisan test tests/Feature/UserManagementTest.php
+php artisan test tests/Feature/ReportsAnalyticsTest.php
+php artisan test tests/Feature/SystemHealthTest.php
+```
+
+Build frontend assets with:
+
+```bash
+npm.cmd run build
+```
+
+## Notes And Maintenance
+
+- The UI is implemented using Livewire and Blade; no separate JS SPA framework is required.
 - Debugbar is installed for local development and will display runtime profiling information when enabled.
-- Permissions are registered via `PermissionRegistry::syncAndRegister()` at seed time; add new permissions to the registry to have them seeded and available.
+- Permissions are registered via `PermissionRegistry::syncAndRegister()` from navigation configuration and generated modules. Admin roles are kept in sync with newly introduced permissions.
+- Presence tracking is handled by `TrackUserActivity`; authenticated requests update `last_seen_at`, while logout updates `logged_out_at`.
+- Login events are logged to `activity_logs` so Reports / Analytics can show login trends.
+- The System Health page performs safe local checks only. External vulnerability audits such as `composer audit` or `npm audit` should be run from the CLI or a queued scan workflow.
 - The `LargeUserSeeder` is intentionally chunked to avoid memory spikes during mass insertion; monitor database and disk usage when running it.
 - The CRUD Maker / Module Builder is documented in [docs/MODULE_BUILDER.md](docs/MODULE_BUILDER.md).
 

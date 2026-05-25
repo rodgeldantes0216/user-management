@@ -7,8 +7,11 @@ use App\Livewire\Dashboard;
 use App\Livewire\Modules\Builder as ModuleBuilder;
 use App\Livewire\Modules\Records as ModuleRecords;
 use App\Livewire\Notifications\Index as NotificationsIndex;
+use App\Livewire\Profile\Index as ProfileIndex;
+use App\Livewire\Reports\Index as ReportsIndex;
 use App\Livewire\Roles\Index as RolesIndex;
 use App\Livewire\Settings\Index as SettingsIndex;
+use App\Livewire\SystemHealth\Index as SystemHealthIndex;
 use App\Livewire\Users\Index as UsersIndex;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -38,6 +41,14 @@ Route::middleware('auth')->group(function () {
         ->middleware('permission:activities.view')
         ->name('activities.index');
 
+    Route::get('/reports', ReportsIndex::class)
+        ->middleware('permission:reports.view')
+        ->name('reports.index');
+
+    Route::get('/system-health', SystemHealthIndex::class)
+        ->middleware('permission:system-health.view')
+        ->name('system-health.index');
+
     Route::get('/settings', SettingsIndex::class)
         ->middleware('permission:settings.view')
         ->name('settings.index');
@@ -45,6 +56,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/notifications', NotificationsIndex::class)
         ->middleware('permission:notifications.view')
         ->name('notifications.index');
+
+    Route::get('/profile', ProfileIndex::class)
+        ->name('profile.index');
 
     Route::get('/modules/builder', ModuleBuilder::class)
         ->middleware('permission:modules.view')
@@ -54,6 +68,10 @@ Route::middleware('auth')->group(function () {
         ->name('modules.records');
 
     Route::post('/logout', function (Request $request) {
+        $request->user()?->forceFill([
+            'logged_out_at' => now(),
+        ])->saveQuietly();
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();

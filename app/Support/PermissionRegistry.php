@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\Module;
 use App\Models\Permission;
+use App\Models\Role;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
@@ -40,6 +41,14 @@ class PermissionRegistry
                     );
                 }
             });
+        }
+
+        if (Schema::hasTable('roles')) {
+            Role::query()
+                ->where('name', 'admin')
+                ->first()
+                ?->permissions()
+                ->syncWithoutDetaching(Permission::query()->pluck('id')->all());
         }
 
         Permission::query()->pluck('name')->each(function (string $permissionName) {

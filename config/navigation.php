@@ -8,6 +8,12 @@ return [
         'permission' => 'dashboard.view',
     ],
     [
+        'key' => 'profile',
+        'label' => 'My Profile',
+        'route' => 'profile.index',
+        'permission' => null,
+    ],
+    [
         'key' => 'users',
         'label' => 'Users',
         'route' => 'users.index',
@@ -37,6 +43,18 @@ return [
         'permissions' => [
             'activities.delete',
         ],
+    ],
+    [
+        'key' => 'reports',
+        'label' => 'Reports / Analytics',
+        'route' => 'reports.index',
+        'permission' => 'reports.view',
+    ],
+    [
+        'key' => 'system-health',
+        'label' => 'System Health',
+        'route' => 'system-health.index',
+        'permission' => 'system-health.view',
     ],
     [
         'key' => 'settings',

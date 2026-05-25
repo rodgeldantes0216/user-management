@@ -20,6 +20,7 @@ class RolePermissionTest extends TestCase
         $this->assertDatabaseHas('permissions', ['name' => 'dashboard.view']);
         $this->assertDatabaseHas('permissions', ['name' => 'users.view']);
         $this->assertDatabaseHas('permissions', ['name' => 'roles.view']);
+        $this->assertDatabaseHas('permissions', ['name' => 'system-health.view']);
     }
 
     public function test_user_without_roles_permission_cannot_access_roles_module(): void

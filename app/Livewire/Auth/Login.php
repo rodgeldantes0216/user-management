@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Auth;
 
+use App\Support\Activity;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
@@ -54,6 +55,16 @@ class Login extends Component
         if (request()->hasSession()) {
             request()->session()->regenerate();
         }
+
+        Activity::log('Logged in', Auth::user(), [
+            'ip' => request()->ip(),
+            'remember' => $credentials['remember'],
+        ], Auth::user());
+
+        Auth::user()->forceFill([
+            'last_seen_at' => now(),
+            'logged_out_at' => null,
+        ])->saveQuietly();
 
         $this->redirectIntended(route('dashboard', absolute: false), navigate: true);
     }

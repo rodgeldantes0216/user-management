@@ -9,9 +9,12 @@
                 </p> -->
             </div>
 
-            @can('viewAny', \App\Models\User::class)
-                <a href="{{ route('users.index') }}" wire:navigate class="btn-primary">Open User Management</a>
-            @endcan
+            <div class="flex flex-wrap gap-3">
+                <a href="{{ route('profile.index') }}" wire:navigate class="btn-secondary">Edit Profile</a>
+                @can('viewAny', \App\Models\User::class)
+                    <a href="{{ route('users.index') }}" wire:navigate class="btn-primary">Open User Management</a>
+                @endcan
+            </div>
         </div>
     </section>
 

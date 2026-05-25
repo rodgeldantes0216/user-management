@@ -14,10 +14,13 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class ModuleGenerator
 {
+    protected int $migrationSequence = 0;
+
     public function __construct(
         protected FieldTypeRegistry $fieldTypes = new FieldTypeRegistry,
         protected ModuleSnapshotService $snapshots = new ModuleSnapshotService,
@@ -107,32 +110,44 @@ class ModuleGenerator
 
     protected function syncPermissions(Module $module): void
     {
+        $rows = [];
+
         foreach (Module::PERMISSION_ABILITIES as $ability) {
-            Permission::query()->firstOrCreate(
-                ['name' => $module->permissionName($ability)],
-                [
-                    'label' => Str::of($module->permissionName($ability))->replace('.', ' ')->title()->toString(),
-                    'group' => $module->table_name,
-                ],
-            );
+            $name = $module->permissionName($ability);
+            $rows[$name] = [
+                'name' => $name,
+                'label' => Str::of($name)->replace('.', ' ')->title()->toString(),
+                'group' => $module->table_name,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+        }
+
+        // Insert missing permissions for this module in a single query
+        $existing = Permission::query()->whereIn('name', array_keys($rows))->pluck('name')->all();
+        $missing = array_diff(array_keys($rows), $existing);
+
+        if (! empty($missing)) {
+            $insertRows = array_map(fn ($name) => $rows[$name], $missing);
+            Permission::query()->insert($insertRows);
         }
 
         $adminRole = Role::query()->where('name', User::ROLE_ADMIN)->first();
 
         if ($adminRole) {
             $adminRole->permissions()->syncWithoutDetaching(
-                Permission::query()
-                    ->where('group', $module->table_name)
-                    ->pluck('id')
-                    ->all()
+                Permission::query()->where('group', $module->table_name)->pluck('id')->all()
             );
         }
     }
 
     protected function writeMigrationFile(Module $module): void
     {
+        $timestamp = now()->addSeconds($this->migrationSequence)->format('Y_m_d_His');
+        $this->migrationSequence++;
+
         $existing = File::glob(database_path('migrations/*_create_'.$module->table_name.'_table.php'));
-        $path = $existing[0] ?? database_path('migrations/'.now()->format('Y_m_d_His').'_create_'.$module->table_name.'_table.php');
+        $path = $existing[0] ?? database_path('migrations/'.$timestamp.'_create_'.$module->table_name.'_table.php');
 
         File::put($path, $this->migrationStub($module));
     }
@@ -226,6 +241,26 @@ PHP;
             $module->fields->contains(fn (ModuleField $field) => $field->type === 'relationship' && $field->relationship_type === 'has_many') ? 'use Illuminate\Database\Eloquent\Relations\HasMany;' : null,
             $module->fields->contains(fn (ModuleField $field) => $field->type === 'relationship' && $field->relationship_type === 'belongs_to_many') ? 'use Illuminate\Database\Eloquent\Relations\BelongsToMany;' : null,
         ])->filter()->map(fn (string $import) => PHP_EOL.$import)->implode('');
+        $relationshipModelImports = $module->fields
+            ->where('type', 'relationship')
+            ->map(function (ModuleField $field) {
+                if (! $field->relationshipModule) {
+                    return null;
+                }
+
+                if ($field->relationshipModule->table_name === 'users') {
+                    return 'use App\Models\User;';
+                }
+
+                $relatedClass = Str::of($field->relationshipModule->table_name)->singular()->studly()->toString();
+
+                return "use App\Models\\Generated\\{$relatedClass};";
+            })
+            ->filter()
+            ->unique()
+            ->map(fn (string $import) => PHP_EOL.$import)
+            ->implode('');
+        $relationImports .= $relationshipModelImports;
         $trait = $module->soft_deletes ? 'HasFactory, SoftDeletes' : 'HasFactory';
         $relationships = $module->fields
             ->where('type', 'relationship')

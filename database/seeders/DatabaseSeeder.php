@@ -65,6 +65,9 @@ class DatabaseSeeder extends Seeder
 
         $user->syncRoleByName(User::ROLE_USER);
 
+        // Seed the example low-code module chain for Projects, Tasks, and Task Comments.
+        $this->call(ModuleBuilderDemoSeeder::class);
+
         // Seed a large number of test users (50,000)
         $this->call(LargeUserSeeder::class);
     }

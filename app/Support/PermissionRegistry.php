@@ -7,6 +7,7 @@ use App\Models\Permission;
 use App\Models\Role;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class PermissionRegistry
@@ -16,43 +17,68 @@ class PermissionRegistry
         if (! Schema::hasTable('permissions')) {
             return;
         }
+        $permissions = [];
 
+        // Gather navigation permissions
         foreach (Navigation::permissions() as $permissionName) {
-            Permission::firstOrCreate(
-                ['name' => $permissionName],
-                [
-                    'label' => Str::of($permissionName)->replace('.', ' ')->title()->toString(),
-                    'group' => Str::before($permissionName, '.'),
-                ],
-            );
+            $permissions[$permissionName] = [
+                'name' => $permissionName,
+                'label' => Str::of($permissionName)->replace('.', ' ')->title()->toString(),
+                'group' => Str::before($permissionName, '.'),
+            ];
         }
 
+        // Gather module permissions in bulk
         if (Schema::hasTable('modules')) {
-            Module::query()->each(function (Module $module) {
+            Module::query()->get(['table_name'])->each(function (Module $module) use (&$permissions) {
                 foreach (Module::PERMISSION_ABILITIES as $ability) {
                     $permissionName = $module->permissionName($ability);
-
-                    Permission::firstOrCreate(
-                        ['name' => $permissionName],
-                        [
-                            'label' => Str::of($permissionName)->replace('.', ' ')->title()->toString(),
-                            'group' => $module->table_name,
-                        ],
-                    );
+                    $permissions[$permissionName] = [
+                        'name' => $permissionName,
+                        'label' => Str::of($permissionName)->replace('.', ' ')->title()->toString(),
+                        'group' => $module->table_name,
+                    ];
                 }
             });
         }
 
-        if (Schema::hasTable('roles')) {
-            Role::query()
-                ->where('name', 'admin')
-                ->first()
-                ?->permissions()
-                ->syncWithoutDetaching(Permission::query()->pluck('id')->all());
+        // Insert missing permissions in a single batch
+        if (! empty($permissions)) {
+            $existing = Permission::query()->whereIn('name', array_keys($permissions))->pluck('name')->all();
+            $missing = array_diff(array_keys($permissions), $existing);
+
+            if (! empty($missing)) {
+                $rows = array_map(fn ($name) => [
+                    'name' => $permissions[$name]['name'],
+                    'label' => $permissions[$name]['label'],
+                    'group' => $permissions[$name]['group'],
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ], $missing);
+
+                // Use insert to batch-create missing permission rows
+                Permission::query()->insert($rows);
+            }
         }
 
-        Permission::query()->pluck('name')->each(function (string $permissionName) {
-            Gate::define($permissionName, fn ($user) => $user->hasPermissionTo($permissionName));
+        // Ensure admin role has all permissions
+        if (Schema::hasTable('roles')) {
+            $adminRole = Role::query()->where('name', 'admin')->first();
+
+            if ($adminRole) {
+                $adminRole->permissions()->syncWithoutDetaching(
+                    Permission::query()->pluck('id')->all()
+                );
+            }
+        }
+
+        // Use a single Gate::before callback to check permissions efficiently
+        Gate::before(function ($user, $ability) {
+            if (method_exists($user, 'hasPermissionTo')) {
+                return $user->hasPermissionTo($ability) ? true : null;
+            }
+
+            return null;
         });
     }
 }

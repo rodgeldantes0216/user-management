@@ -15,8 +15,8 @@ class LargeUserSeeder extends Seeder
      */
     public function run(): void
     {
-        $total = 50000;
-        $chunk = 1000;
+        $total = 12000;
+        $chunk = 2000;
         $created = 0;
 
         while ($created < $total) {

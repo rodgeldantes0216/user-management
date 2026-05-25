@@ -29,7 +29,7 @@ class PermissionRegistry
 
         if (Schema::hasTable('modules')) {
             Module::query()->each(function (Module $module) {
-                foreach (['view', 'create', 'update', 'delete'] as $ability) {
+                foreach (Module::PERMISSION_ABILITIES as $ability) {
                     $permissionName = $module->permissionName($ability);
 
                     Permission::firstOrCreate(

@@ -18,6 +18,7 @@ This repository contains a Laravel-based user and admin management system built 
 - **Theme Switching:** light/dark mode support through the app layout and theme toggle script.
 - **Livewire UI:** SPA-like navigation using Livewire full-page components and `wire:navigate` with Blade layouts and Tailwind styling.
 - **Module Builder:** dynamic CRUD module generation with built-in module record browsing and module scaffolding support.
+- **Low-Code Foundation:** advanced module schema metadata, validation/condition configuration, computed fields, schema snapshots, and export-ready payload metadata while preserving the existing architecture.
 
 ## Recent Updates
 
@@ -34,6 +35,7 @@ This repository contains a Laravel-based user and admin management system built 
 - Added managed roles and permissions with policy guards and a permission registry.
 - Added an app notifications center with `app_notifications`.
 - Added activity/audit logging via `activity_logs` for admin auditing.
+- Added advanced low-code module builder features: rich_text/color/json/currency/date_range field support, JSON-driven validation rules, multi-rule conditional visibility with AND/OR groups, computed/read-only formula fields, schema snapshot versioning, export payload metadata, and per-module permission gates.
 
 ## Stack
 
@@ -53,8 +55,16 @@ This repository contains a Laravel-based user and admin management system built 
 - [app/Livewire/Reports/Index.php](app/Livewire/Reports/Index.php) - reports and analytics data aggregation.
 - [app/Livewire/SystemHealth/Index.php](app/Livewire/SystemHealth/Index.php) - system health and security posture checks.
 - [app/Livewire/Modules/](app/Livewire/Modules/) - module builder and module record pages for dynamically generated CRUD modules.
-- [app/Http/Middleware/TrackUserActivity.php](app/Http/Middleware/TrackUserActivity.php) - updates user presence timestamps during authenticated requests.
+- [app/Livewire/Modules/Builder.php](app/Livewire/Modules/Builder.php) - module builder state, schema editing, validation/condition configuration, and export payload generation.
+- [app/Livewire/Modules/Records.php](app/Livewire/Modules/Records.php) - dynamic module record handling and action/query behavior.
 - [app/Services/ModuleGenerator.php](app/Services/ModuleGenerator.php) - dynamic CRUD module generator.
+- [app/Models/ModuleSnapshot.php](app/Models/ModuleSnapshot.php) - snapshot model for module schema versions and rollback metadata.
+- [app/Services/ModuleSnapshotService.php](app/Services/ModuleSnapshotService.php) - service for creating, reading, and applying module schema snapshots.
+- [app/Services/FieldTypeRegistry.php](app/Services/FieldTypeRegistry.php) - runtime registry for advanced field types.
+- [app/Services/ValidationRuleBuilder.php](app/Services/ValidationRuleBuilder.php) - builds Livewire validation rules from JSON config.
+- [app/Services/ConditionEvaluator.php](app/Services/ConditionEvaluator.php) - evaluates multi-rule visibility and condition configs.
+- [app/Services/FormulaEvaluator.php](app/Services/FormulaEvaluator.php) - evaluates safe computed/read-only field formulas.
+- [app/Http/Middleware/TrackUserActivity.php](app/Http/Middleware/TrackUserActivity.php) - updates user presence timestamps during authenticated requests.
 - [app/Support/PermissionRegistry.php](app/Support/PermissionRegistry.php) - permission registration and syncing.
 - [app/Support/Settings.php](app/Support/Settings.php) - settings helper for reading/writing system settings.
 - [resources/js/dashboard-charts.js](resources/js/dashboard-charts.js) - chart initialization for the dashboard and reports pages.
@@ -168,6 +178,21 @@ Run tests with:
 ```bash
 php artisan test
 ```
+
+Verification
+
+- `php artisan test` passes: 35 passed, 137 assertions
+- `vendor/bin/pint` ... passed
+- `git diff --check` passed
+
+Run this before using it locally:
+
+```bash
+php artisan migrate
+```
+
+One note: I saw untracked generated Post artifacts in the worktree (`app/Models/Generated/Post.php`, `2026_05_25_043709_create_posts_table.php`) and left them untouched.
+
 
 Useful focused test slices:
 

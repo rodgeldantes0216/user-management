@@ -17,6 +17,10 @@
                         @if (in_array($field->type, ['checkbox', 'toggle'], true))
                             <option value="1">Yes</option>
                             <option value="0">No</option>
+                        @elseif ($field->type === 'relationship')
+                            @foreach ($field->relationshipOptions() as $option)
+                                <option value="{{ $option['id'] }}">{{ $option['label'] }}</option>
+                            @endforeach
                         @else
                             @foreach ($field->optionList() as $option)
                                 <option value="{{ $option }}">{{ $option }}</option>
@@ -24,7 +28,9 @@
                         @endif
                     </select>
                 @endforeach
-                <button type="button" wire:click="create" class="btn-primary min-w-[7rem]">New record</button>
+                @if ($canCreate)
+                    <button type="button" wire:click="create" class="btn-primary min-w-[7rem]">New record</button>
+                @endif
             </div>
         </div>
 
@@ -40,26 +46,48 @@
             <table class="min-w-full">
                 <thead class="table-head">
                     <tr>
-                        @foreach ($fields as $field)
+                        @foreach ($listFields as $field)
                             <th class="px-5 py-3">
-                                <button type="button" wire:click="sortBy('{{ $field->name }}')" class="text-left uppercase tracking-[0.28em]">
-                                    {{ $field->label }}
-                                    @if ($sortField === $field->name)
-                                        {{ $sortDirection === 'asc' ? '↑' : '↓' }}
-                                    @endif
-                                </button>
+                                @if ($field->sortable)
+                                    <button type="button" wire:click="sortBy('{{ $field->name }}')" class="text-left uppercase tracking-[0.28em]">
+                                        {{ $field->label }}
+                                        @if ($sortField === $field->name)
+                                            {{ $sortDirection === 'asc' ? 'ASC' : 'DESC' }}
+                                        @endif
+                                    </button>
+                                @else
+                                    <span class="text-left uppercase tracking-[0.28em]">{{ $field->label }}</span>
+                                @endif
                             </th>
                         @endforeach
-                        <th class="px-5 py-3 text-right">Actions</th>
+                        @if ($canUpdate || $canDelete)
+                            <th class="px-5 py-3 text-right">Actions</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($records as $record)
                         <tr class="table-row">
-                            @foreach ($fields as $field)
+                            @foreach ($listFields as $field)
                                 <td class="table-cell">
                                     @if (in_array($field->type, ['checkbox', 'toggle'], true))
                                         <span class="badge-role">{{ $record->{$field->name} ? 'Yes' : 'No' }}</span>
+                                    @elseif ($field->type === 'relationship')
+                                        {{ $relationshipDisplays[$field->name][$record->{$field->name}] ?? ('#'.$record->{$field->name}) }}
+                                    @elseif ($field->type === 'color' && $record->{$field->name})
+                                        <span class="inline-flex items-center gap-2">
+                                            <span class="h-4 w-4 rounded border border-white/10" style="background-color: {{ $record->{$field->name} }}"></span>
+                                            {{ $record->{$field->name} }}
+                                        </span>
+                                    @elseif ($field->type === 'currency')
+                                        {{ is_numeric($record->{$field->name}) ? number_format((float) $record->{$field->name}, 2) : $record->{$field->name} }}
+                                    @elseif ($field->type === 'date_range' && $record->{$field->name})
+                                        @php($range = json_decode($record->{$field->name}, true) ?: [])
+                                        {{ ($range['start'] ?? '') }} @if (($range['start'] ?? '') || ($range['end'] ?? '')) to @endif {{ ($range['end'] ?? '') }}
+                                    @elseif ($field->type === 'json')
+                                        <code class="text-xs text-slate-400">{{ str($record->{$field->name})->limit(80) }}</code>
+                                    @elseif ($field->type === 'rich_text')
+                                        {{ str(strip_tags($record->{$field->name}))->limit(120) }}
                                     @elseif (in_array($field->type, ['file', 'image'], true) && $record->{$field->name})
                                         <a href="{{ asset('storage/'.$record->{$field->name}) }}" target="_blank" class="text-brand-300 hover:text-brand-200">View file</a>
                                     @elseif ($field->type === 'password')
@@ -69,16 +97,22 @@
                                     @endif
                                 </td>
                             @endforeach
-                            <td class="table-cell">
-                                <div class="flex justify-end gap-2">
-                                    <button type="button" wire:click="edit({{ $record->id }})" class="btn-secondary px-3 py-1.5">Edit</button>
-                                    <button type="button" wire:click="confirmDelete({{ $record->id }})" class="btn-danger px-3 py-1.5">Delete</button>
-                                </div>
-                            </td>
+                            @if ($canUpdate || $canDelete)
+                                <td class="table-cell">
+                                    <div class="flex justify-end gap-2">
+                                        @if ($canUpdate)
+                                            <button type="button" wire:click="edit({{ $record->id }})" class="btn-secondary px-3 py-1.5">Edit</button>
+                                        @endif
+                                        @if ($canDelete)
+                                            <button type="button" wire:click="confirmDelete({{ $record->id }})" class="btn-danger px-3 py-1.5">Delete</button>
+                                        @endif
+                                    </div>
+                                </td>
+                            @endif
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="{{ $fields->count() + 1 }}" class="px-5 py-10 text-center text-sm text-slate-500">No records matched your current filters.</td>
+                            <td colspan="{{ $listFields->count() + (($canUpdate || $canDelete) ? 1 : 0) }}" class="px-5 py-10 text-center text-sm text-slate-500">No records matched your current filters.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -102,42 +136,72 @@
                 </div>
 
                 <form wire:submit="save" class="mt-6 space-y-5">
-                    <div class="grid gap-5 sm:grid-cols-2">
-                        @foreach ($fields as $field)
-                            <div class="{{ $field->type === 'textarea' ? 'sm:col-span-2' : '' }}">
-                                <label class="label">{{ $field->label }}</label>
+                    <div class="space-y-5">
+                        @foreach ($formGroups as $groupName => $groupFields)
+                            <section class="space-y-4">
+                                <h4 class="text-sm font-semibold text-slate-200">{{ $groupName }}</h4>
+                                <div class="grid gap-5 sm:grid-cols-2">
+                        @foreach ($groupFields as $field)
+                            @if ($this->fieldIsVisible($field))
+                                <div class="{{ in_array($field->type, ['textarea', 'rich_text', 'json'], true) || $field->column_span === 2 ? 'sm:col-span-2' : '' }}">
+                                    <label class="label">{{ $field->label }}</label>
 
-                                @if ($field->type === 'textarea')
-                                    <textarea wire:model="form.{{ $field->name }}" class="input min-h-32" placeholder="{{ $field->placeholder }}"></textarea>
-                                @elseif ($field->type === 'select')
-                                    <select wire:model="form.{{ $field->name }}" class="select">
-                                        <option value="">Choose {{ strtolower($field->label) }}</option>
-                                        @foreach ($field->optionList() as $option)
-                                            <option value="{{ $option }}">{{ $option }}</option>
-                                        @endforeach
-                                    </select>
-                                @elseif ($field->type === 'radio')
-                                    <div class="flex flex-wrap gap-3">
-                                        @foreach ($field->optionList() as $option)
-                                            <label class="flex items-center gap-3 rounded-lg border border-white/[0.06] px-3 py-2.5 text-sm text-slate-300">
-                                                <input type="radio" wire:model="form.{{ $field->name }}" value="{{ $option }}" class="h-4 w-4 border-slate-700 bg-transparent text-brand-500 focus:ring-0">
-                                                <span>{{ $option }}</span>
-                                            </label>
-                                        @endforeach
-                                    </div>
-                                @elseif (in_array($field->type, ['checkbox', 'toggle'], true))
-                                    <label class="flex items-center gap-3 rounded-lg border border-white/[0.06] px-3 py-2.5 text-sm text-slate-300">
-                                        <input type="checkbox" wire:model="form.{{ $field->name }}" class="h-4 w-4 rounded border-slate-700 bg-transparent text-brand-500 focus:ring-0">
-                                        <span>Enabled</span>
-                                    </label>
-                                @elseif (in_array($field->type, ['file', 'image'], true))
-                                    <input type="file" wire:model="form.{{ $field->name }}" class="input">
-                                @else
-                                    <input type="{{ $field->type === 'datetime' ? 'datetime-local' : $field->type }}" wire:model="form.{{ $field->name }}" class="input" placeholder="{{ $field->placeholder }}">
-                                @endif
+                                    @if (in_array($field->type, ['textarea', 'rich_text'], true))
+                                        <textarea wire:model.live="form.{{ $field->name }}" class="input min-h-32" placeholder="{{ $field->placeholder }}" @readonly((bool) ($field->computed_config['readonly'] ?? false))></textarea>
+                                    @elseif ($field->type === 'json')
+                                        <textarea wire:model.live="form.{{ $field->name }}" class="input min-h-36 font-mono text-xs" placeholder='{"key":"value"}' @readonly((bool) ($field->computed_config['readonly'] ?? false))></textarea>
+                                    @elseif ($field->type === 'select')
+                                        <select wire:model.live="form.{{ $field->name }}" class="select">
+                                            <option value="">Choose {{ strtolower($field->label) }}</option>
+                                            @foreach ($field->optionList() as $option)
+                                                <option value="{{ $option }}">{{ $option }}</option>
+                                            @endforeach
+                                        </select>
+                                    @elseif ($field->type === 'relationship')
+                                        <select wire:model.live="form.{{ $field->name }}" class="select">
+                                            <option value="">Choose {{ strtolower($field->label) }}</option>
+                                            @foreach ($field->relationshipOptions() as $option)
+                                                <option value="{{ $option['id'] }}">{{ $option['label'] }}</option>
+                                            @endforeach
+                                        </select>
+                                    @elseif ($field->type === 'radio')
+                                        <div class="flex flex-wrap gap-3">
+                                            @foreach ($field->optionList() as $option)
+                                                <label class="flex items-center gap-3 rounded-lg border border-white/[0.06] px-3 py-2.5 text-sm text-slate-300">
+                                                    <input type="radio" wire:model.live="form.{{ $field->name }}" value="{{ $option }}" class="h-4 w-4 border-slate-700 bg-transparent text-brand-500 focus:ring-0">
+                                                    <span>{{ $option }}</span>
+                                                </label>
+                                            @endforeach
+                                        </div>
+                                    @elseif (in_array($field->type, ['checkbox', 'toggle'], true))
+                                        <label class="flex items-center gap-3 rounded-lg border border-white/[0.06] px-3 py-2.5 text-sm text-slate-300">
+                                            <input type="checkbox" wire:model.live="form.{{ $field->name }}" class="h-4 w-4 rounded border-slate-700 bg-transparent text-brand-500 focus:ring-0">
+                                            <span>Enabled</span>
+                                        </label>
+                                    @elseif (in_array($field->type, ['file', 'image'], true))
+                                        <input type="file" wire:model="form.{{ $field->name }}" class="input">
+                                    @elseif ($field->type === 'color')
+                                        <div class="flex gap-3">
+                                            <input type="color" wire:model.live="form.{{ $field->name }}" class="h-11 w-16 rounded border border-white/[0.08] bg-transparent">
+                                            <input type="text" wire:model.live="form.{{ $field->name }}" class="input" placeholder="#2563eb">
+                                        </div>
+                                    @elseif ($field->type === 'currency')
+                                        <input type="number" step="0.01" wire:model.live="form.{{ $field->name }}" class="input" placeholder="{{ $field->placeholder }}" @readonly((bool) ($field->computed_config['readonly'] ?? false))>
+                                    @elseif ($field->type === 'date_range')
+                                        <div class="grid gap-3 sm:grid-cols-2">
+                                            <input type="date" wire:model.live="form.{{ $field->name }}.start" class="input">
+                                            <input type="date" wire:model.live="form.{{ $field->name }}.end" class="input">
+                                        </div>
+                                    @else
+                                        <input type="{{ $field->type === 'datetime' ? 'datetime-local' : $field->type }}" wire:model.live="form.{{ $field->name }}" class="input" placeholder="{{ $field->placeholder }}" @readonly((bool) ($field->computed_config['readonly'] ?? false))>
+                                    @endif
 
-                                @error('form.'.$field->name) <p class="mt-2 text-sm text-rose-500">{{ $message }}</p> @enderror
-                            </div>
+                                    @error('form.'.$field->name) <p class="mt-2 text-sm text-rose-500">{{ $message }}</p> @enderror
+                                </div>
+                            @endif
+                        @endforeach
+                                </div>
+                            </section>
                         @endforeach
                     </div>
 

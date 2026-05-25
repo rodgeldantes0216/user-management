@@ -11,6 +11,8 @@ class Module extends Model
 {
     use HasFactory;
 
+    public const PERMISSION_ABILITIES = ['view', 'create', 'update', 'delete', 'export', 'approve'];
+
     protected $fillable = [
         'name',
         'table_name',
@@ -35,6 +37,11 @@ class Module extends Model
     public function fields(): HasMany
     {
         return $this->hasMany(ModuleField::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    public function snapshots(): HasMany
+    {
+        return $this->hasMany(ModuleSnapshot::class)->latest('version');
     }
 
     public function permissionName(string $ability): string

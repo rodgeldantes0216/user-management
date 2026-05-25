@@ -4,6 +4,10 @@ namespace App\Livewire\Modules;
 
 use App\Models\Module;
 use App\Models\ModuleField;
+use App\Services\Modules\ConditionEvaluator;
+use App\Services\Modules\FieldTypeRegistry;
+use App\Services\Modules\FormulaEvaluator;
+use App\Services\Modules\ValidationRuleBuilder;
 use App\Support\Activity;
 use App\Support\NotificationCenter;
 use Illuminate\Support\Facades\DB;
@@ -46,9 +50,17 @@ class Records extends Component
 
     public array $uploads = [];
 
+    public function updatedForm(): void
+    {
+        $this->applyComputedFields();
+    }
+
     public function mount(string $module): void
     {
-        $this->moduleDefinition = Module::query()->with('fields')->where('table_name', $module)->firstOrFail();
+        $this->moduleDefinition = Module::query()
+            ->with(['fields.relationshipModule.fields'])
+            ->where('table_name', $module)
+            ->firstOrFail();
 
         abort_unless(auth()->user()->hasPermissionTo($this->moduleDefinition->permissionName('view')), 403);
         abort_unless(Schema::hasTable($this->moduleDefinition->table_name), 404);
@@ -68,7 +80,7 @@ class Records extends Component
 
     public function sortBy(string $field): void
     {
-        if (! in_array($field, ['id', ...$this->moduleDefinition->fields->pluck('name')->all()], true)) {
+        if (! in_array($field, ['id', ...$this->sortableFields()->pluck('name')->all()], true)) {
             return;
         }
 
@@ -96,8 +108,16 @@ class Records extends Component
 
         $this->editingRecordId = $recordId;
         foreach ($this->moduleDefinition->fields as $field) {
-            $this->form[$field->name] = in_array($field->type, ['password', 'file', 'image'], true) ? '' : ($record->{$field->name} ?? null);
+            $value = in_array($field->type, ['password', 'file', 'image'], true) ? '' : ($record->{$field->name} ?? null);
+
+            if (in_array($field->type, ['date_range'], true) && is_string($value)) {
+                $value = json_decode($value, true) ?: ['start' => '', 'end' => ''];
+            }
+
+            $this->form[$field->name] = $value;
         }
+
+        $this->applyComputedFields();
 
         $this->showFormModal = true;
     }
@@ -108,8 +128,13 @@ class Records extends Component
             $this->moduleDefinition->permissionName($this->editingRecordId ? 'update' : 'create')
         ), 403);
 
+        $this->applyComputedFields();
+
         $validated = $this->validate($this->rules())['form'];
         $payload = $this->payload($validated);
+        $oldValues = $this->editingRecordId
+            ? (array) DB::table($this->moduleDefinition->table_name)->where('id', $this->editingRecordId)->first()
+            : [];
 
         if ($this->editingRecordId) {
             DB::table($this->moduleDefinition->table_name)->where('id', $this->editingRecordId)->update([
@@ -129,6 +154,10 @@ class Records extends Component
         Activity::log($action, $this->moduleDefinition, [
             'module' => $this->moduleDefinition->name,
             'record_id' => $recordId,
+            'action_type' => $this->editingRecordId ? 'update' : 'create',
+            'changed_fields' => array_keys($payload),
+            'old_values' => $this->editingRecordId ? array_intersect_key($oldValues, $payload) : [],
+            'new_values' => $payload,
         ], auth()->user());
         NotificationCenter::notifyForModule(
             $this->moduleDefinition->table_name,
@@ -155,6 +184,8 @@ class Records extends Component
     {
         abort_unless(auth()->user()->hasPermissionTo($this->moduleDefinition->permissionName('delete')), 403);
 
+        $oldValues = (array) DB::table($this->moduleDefinition->table_name)->where('id', $this->deletingRecordId)->first();
+
         if ($this->moduleDefinition->soft_deletes) {
             DB::table($this->moduleDefinition->table_name)->where('id', $this->deletingRecordId)->update(['deleted_at' => now()]);
         } else {
@@ -164,6 +195,8 @@ class Records extends Component
         Activity::log($this->activityAction('Deleted'), $this->moduleDefinition, [
             'module' => $this->moduleDefinition->name,
             'record_id' => $this->deletingRecordId,
+            'action_type' => 'delete',
+            'old_values' => $oldValues,
         ], auth()->user());
 
         $this->closeDeleteModal();
@@ -205,13 +238,19 @@ class Records extends Component
             'module' => $this->moduleDefinition,
             'records' => $records,
             'fields' => $this->moduleDefinition->fields,
+            'listFields' => $this->listFields(),
             'filterFields' => $this->filterFields(),
+            'relationshipDisplays' => $this->relationshipDisplays($records->items()),
+            'canCreate' => auth()->user()->hasPermissionTo($this->moduleDefinition->permissionName('create')),
+            'canUpdate' => auth()->user()->hasPermissionTo($this->moduleDefinition->permissionName('update')),
+            'canDelete' => auth()->user()->hasPermissionTo($this->moduleDefinition->permissionName('delete')),
+            'formGroups' => $this->formGroups(),
         ]);
     }
 
     protected function sanitizeSortField(): string
     {
-        $allowed = array_merge(['id'], $this->moduleDefinition->fields->pluck('name')->all());
+        $allowed = array_merge(['id'], $this->sortableFields()->pluck('name')->all());
 
         return in_array($this->sortField, $allowed, true)
             ? $this->sortField
@@ -247,13 +286,11 @@ class Records extends Component
         $rules = [];
 
         foreach ($this->moduleDefinition->fields as $field) {
-            $fieldRules = $this->fieldRules($field);
-
-            if ($field->validation_rules) {
-                $fieldRules = array_merge($fieldRules, explode('|', $field->validation_rules));
+            if (! $this->fieldIsVisible($field)) {
+                continue;
             }
 
-            $rules['form.'.$field->name] = $fieldRules;
+            $rules['form.'.$field->name] = app(ValidationRuleBuilder::class)->rulesFor($this->moduleDefinition, $field, $this->editingRecordId);
         }
 
         return $rules;
@@ -281,6 +318,7 @@ class Records extends Component
             'checkbox', 'toggle' => [...$rules, 'boolean'],
             'date' => [...$rules, 'date'],
             'datetime' => [...$rules, 'date'],
+            'relationship' => $this->relationshipRules($field, $rules),
             'file' => [
                 $this->editingRecordId ? 'nullable' : ($field->required ? 'required' : 'nullable'),
                 'file',
@@ -304,6 +342,20 @@ class Records extends Component
         $payload = [];
 
         foreach ($this->moduleDefinition->fields as $field) {
+            if ($field->isComputed() && $field->persistsComputedValue()) {
+                $payload[$field->name] = app(FormulaEvaluator::class)->compute($field, $this->form);
+
+                continue;
+            }
+
+            if (! $this->fieldIsVisible($field)) {
+                if (! in_array($field->type, ['file', 'image', 'password'], true)) {
+                    $payload[$field->name] = null;
+                }
+
+                continue;
+            }
+
             $value = $validated[$field->name] ?? null;
 
             if ($field->type === 'password') {
@@ -323,6 +375,15 @@ class Records extends Component
             }
 
             if (in_array($field->type, ['file', 'image'], true) && $this->editingRecordId && ($value === null || $value === '')) {
+                continue;
+            }
+
+            if ($field->type === 'date_range' && is_array($value)) {
+                $payload[$field->name] = json_encode([
+                    'start' => $value['start'] ?? null,
+                    'end' => $value['end'] ?? null,
+                ]);
+
                 continue;
             }
 
@@ -356,17 +417,96 @@ class Records extends Component
         foreach ($this->moduleDefinition->fields as $field) {
             $this->form[$field->name] = in_array($field->type, ['checkbox', 'toggle'], true)
                 ? (bool) $field->default_value
-                : $field->default_value;
+                : ($field->type === 'date_range' ? ['start' => '', 'end' => ''] : $field->default_value);
         }
+
+        $this->applyComputedFields();
     }
 
     protected function searchableFields()
     {
-        return $this->moduleDefinition->fields->whereIn('type', ['text', 'textarea', 'email', 'select', 'radio']);
+        return $this->moduleDefinition->fields
+            ->where('searchable', true)
+            ->whereIn('type', FieldTypeRegistry::SEARCHABLE_TYPES);
     }
 
     protected function filterFields()
     {
-        return $this->moduleDefinition->fields->whereIn('type', ['select', 'radio', 'checkbox', 'toggle']);
+        return $this->moduleDefinition->fields
+            ->where('filterable', true)
+            ->whereIn('type', FieldTypeRegistry::FILTERABLE_TYPES);
+    }
+
+    protected function listFields()
+    {
+        return $this->moduleDefinition->fields->where('show_in_list', true);
+    }
+
+    protected function sortableFields()
+    {
+        return $this->moduleDefinition->fields->where('sortable', true);
+    }
+
+    protected function relationshipRules(ModuleField $field, array $rules): array
+    {
+        if (! $field->relationshipModule) {
+            return [...$rules, 'integer'];
+        }
+
+        return [...$rules, 'integer', Rule::exists($field->relationshipModule->table_name, 'id')];
+    }
+
+    public function fieldIsVisible(ModuleField $field): bool
+    {
+        if (! $field->hasCondition()) {
+            return $field->visible_in_form;
+        }
+
+        return $field->visible_in_form && app(ConditionEvaluator::class)->visible($field, $this->form);
+    }
+
+    protected function relationshipDisplays(array $records): array
+    {
+        $displays = [];
+
+        foreach ($this->moduleDefinition->fields->where('type', 'relationship') as $field) {
+            if (! $field->relationshipModule || ! $field->relationship_display_field) {
+                continue;
+            }
+
+            $ids = collect($records)
+                ->pluck($field->name)
+                ->filter()
+                ->unique()
+                ->values();
+
+            if ($ids->isEmpty()) {
+                continue;
+            }
+
+            $displays[$field->name] = DB::table($field->relationshipModule->table_name)
+                ->whereIn('id', $ids)
+                ->pluck($field->relationship_display_field, 'id')
+                ->all();
+        }
+
+        return $displays;
+    }
+
+    protected function applyComputedFields(): void
+    {
+        foreach ($this->moduleDefinition->fields as $field) {
+            if (! $field->isComputed()) {
+                continue;
+            }
+
+            $this->form[$field->name] = app(FormulaEvaluator::class)->compute($field, $this->form);
+        }
+    }
+
+    protected function formGroups()
+    {
+        return $this->moduleDefinition->fields
+            ->groupBy(fn (ModuleField $field) => $field->group_name ?: 'Details');
     }
 }

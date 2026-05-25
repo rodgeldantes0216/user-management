@@ -42,6 +42,38 @@ This repository contains a Laravel-based user and admin management system built 
 - [database/seeders/DatabaseSeeder.php](database/seeders/DatabaseSeeder.php) — seeds initial roles, permissions, admin user and settings.
 - [database/seeders/LargeUserSeeder.php](database/seeders/LargeUserSeeder.php) — helper seeder that creates 50,000 users in chunks for load testing.
 
+## Project structure
+
+Top-level layout (important folders and files):
+
+```
+artisan
+composer.json
+package.json
+phpunit.xml
+README.md
+vite.config.js
+app/
+	Livewire/
+	Models/
+	Services/
+	Support/
+bootstrap/
+config/
+database/
+	migrations/
+	seeders/
+public/
+resources/
+	css/
+	js/
+	views/
+routes/
+storage/
+tests/
+vendor/
+```
+
 ## Quick start (local)
 
 1. Clone and install dependencies

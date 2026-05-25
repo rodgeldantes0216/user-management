@@ -36,6 +36,9 @@ This repository contains a Laravel-based user and admin management system built 
 - Added an app notifications center with `app_notifications`.
 - Added activity/audit logging via `activity_logs` for admin auditing.
 - Added advanced low-code module builder features: rich_text/color/json/currency/date_range field support, JSON-driven validation rules, multi-rule conditional visibility with AND/OR groups, computed/read-only formula fields, schema snapshot versioning, export payload metadata, and per-module permission gates.
+- Improved permission and registration performance: batch-created missing permissions, replaced per-permission Gate definitions with a single `Gate::before` check, and reduced N+1 queries when syncing module permissions.
+- Fixed generated migration ordering by ensuring unique timestamps for module-generated migrations (`ModuleGenerator::$migrationSequence`) so dependent tables (e.g., `tasks` → `task_comments`) are created in the correct sequence.
+- Added a repeatable module seeder: `database/seeders/ModuleBuilderDemoSeeder.php` (creates Projects, Tasks, Task Comments, and a lightweight Users wrapper).
 
 ## Stack
 
@@ -64,6 +67,8 @@ This repository contains a Laravel-based user and admin management system built 
 - [app/Services/ValidationRuleBuilder.php](app/Services/ValidationRuleBuilder.php) - builds Livewire validation rules from JSON config.
 - [app/Services/ConditionEvaluator.php](app/Services/ConditionEvaluator.php) - evaluates multi-rule visibility and condition configs.
 - [app/Services/FormulaEvaluator.php](app/Services/FormulaEvaluator.php) - evaluates safe computed/read-only field formulas.
+ - [app/Support/PermissionRegistry.php](app/Support/PermissionRegistry.php) - batched permission creation and a single `Gate::before` registration for efficient permission checks.
+ - [app/Services/ModuleGenerator.php](app/Services/ModuleGenerator.php) - now batch-inserts module permissions, syncs admin role efficiently, and ensures unique migration timestamps for generated files.
 - [app/Http/Middleware/TrackUserActivity.php](app/Http/Middleware/TrackUserActivity.php) - updates user presence timestamps during authenticated requests.
 - [app/Support/PermissionRegistry.php](app/Support/PermissionRegistry.php) - permission registration and syncing.
 - [app/Support/Settings.php](app/Support/Settings.php) - settings helper for reading/writing system settings.
@@ -185,10 +190,22 @@ Verification
 - `vendor/bin/pint` ... passed
 - `git diff --check` passed
 
+Module-builder verification
+
+- Generated connected modules: `Projects`, `Tasks` (belongs to `Projects`), and `Task Comments` (belongs to `Tasks` + `Users`) via `database/seeders/ModuleBuilderDemoSeeder.php`.
+- Generated artifacts: migrations (`create_projects_table`, `create_tasks_table`, `create_task_comments_table`) and runtime models in `app/Models/Generated`.
+- Module-focused tests: `php artisan test --filter=ModuleBuilderTest` passed (9 tests, 53 assertions).
+
 Run this before using it locally:
 
 ```bash
 php artisan migrate
+```
+
+To seed the demo modules:
+
+```bash
+php artisan db:seed --class=ModuleBuilderDemoSeeder
 ```
 
 One note: I saw untracked generated Post artifacts in the worktree (`app/Models/Generated/Post.php`, `2026_05_25_043709_create_posts_table.php`) and left them untouched.

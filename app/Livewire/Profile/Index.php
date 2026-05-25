@@ -18,6 +18,8 @@ class Index extends Component
 
     public string $name = '';
 
+    public string $username = '';
+
     public string $email = '';
 
     public ?string $phone = null;
@@ -39,6 +41,7 @@ class Index extends Component
         $user = auth()->user();
 
         $this->name = $user->name;
+        $this->username = $user->username ?? '';
         $this->email = $user->email;
         $this->phone = $user->phone;
         $this->location = $user->location;
@@ -59,6 +62,7 @@ class Index extends Component
     {
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
+            'username' => ['required', 'string', 'alpha_dash:ascii', 'min:3', 'max:40', 'unique:users,username,'.auth()->id()],
             'email' => ['required', 'email', 'max:255', 'unique:users,email,'.auth()->id()],
             'phone' => ['nullable', 'string', 'max:25'],
             'location' => ['nullable', 'string', 'max:255'],
@@ -78,6 +82,7 @@ class Index extends Component
 
         $user->fill([
             'name' => $validated['name'],
+            'username' => $validated['username'],
             'email' => $validated['email'],
             'phone' => $validated['phone'],
             'location' => $validated['location'],

@@ -34,6 +34,7 @@ class NotificationCenterTest extends TestCase
         Livewire::actingAs($admin)->test(UsersIndex::class)
             ->call('create')
             ->set('name', 'Notify User')
+            ->set('username', 'notify_user')
             ->set('email', 'notify@example.com')
             ->set('role', User::ROLE_ADMIN)
             ->set('password', 'password')

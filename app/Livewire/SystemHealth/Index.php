@@ -2,6 +2,7 @@
 
 namespace App\Livewire\SystemHealth;
 
+use App\Support\Settings;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
@@ -126,14 +127,18 @@ class Index extends Component
     protected function mailCheck(): array
     {
         $mailer = config('mail.default');
-        $from = config('mail.from.address');
+        $configuredFrom = config('mail.from.address');
+        $settingsFrom = Settings::all()['mail_from_address'] ?? null;
+        $from = collect([$settingsFrom, $configuredFrom])
+            ->filter(fn ($address) => filled($address) && ! $this->looksLikePlaceholderEmail($address))
+            ->first() ?? $settingsFrom ?? $configuredFrom;
         $transport = config("mail.mailers.{$mailer}.transport", $mailer);
 
-        if (! $from || str_contains($from, 'example.com')) {
+        if (! $from || $this->looksLikePlaceholderEmail($from)) {
             return $this->check('Mail configuration', 'warning', "Mailer {$mailer} uses {$transport}, but the from address looks unfinished.", 'Messaging');
         }
 
-        return $this->check('Mail configuration', 'healthy', "Mailer {$mailer} is configured with {$transport} transport.", 'Messaging');
+        return $this->check('Mail configuration', 'healthy', "Mailer {$mailer} uses {$transport} with {$from}.", 'Messaging');
     }
 
     protected function storageLinkCheck(): array
@@ -237,5 +242,12 @@ class Index extends Component
     protected function check(string $name, string $status, string $message, string $group): array
     {
         return compact('name', 'status', 'message', 'group');
+    }
+
+    protected function looksLikePlaceholderEmail(string $email): bool
+    {
+        return str_contains($email, 'example.com')
+            || str_contains($email, 'example.test')
+            || str_starts_with($email, 'hello@');
     }
 }

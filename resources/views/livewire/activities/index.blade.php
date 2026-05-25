@@ -45,7 +45,7 @@
                 </thead>
                 <tbody>
                     @forelse ($activities as $activity)
-                        <tr class="table-row">
+                        <tr class="table-row cursor-pointer" wire:click="openDetail({{ $activity->id }})">
                             <td class="table-cell font-medium text-blue-100">{{ $activity->name }}</td>
                             <td class="table-cell text-blue-100/95">{{ $activity->email }}</td>
                             <td class="table-cell">
@@ -54,8 +54,9 @@
                             <td class="table-cell text-blue-100/95">{{ $activity->created_at->format('M d, Y h:i A') }}</td>
                             <td class="table-cell">
                                 <div class="flex justify-end gap-2">
+                                    <button type="button" wire:click.stop="openDetail({{ $activity->id }})" class="btn-secondary px-3 py-1.5">View</button>
                                     @can('activities.delete')
-                                        <button type="button" wire:click="confirmDelete({{ $activity->id }})" class="btn-danger px-3 py-1.5">Delete</button>
+                                        <button type="button" wire:click.stop="confirmDelete({{ $activity->id }})" class="btn-danger px-3 py-1.5">Delete</button>
                                     @endcan
                                 </div>
                             </td>
@@ -73,6 +74,90 @@
             {{ $activities->links() }}
         </div>
     </section>
+
+    @if ($showDetailDrawer && $selectedActivity)
+        <div class="fixed inset-0 z-50 flex justify-end bg-slate-950/55">
+            <button type="button" wire:click="closeDetailDrawer" class="absolute inset-0 h-full w-full cursor-default" aria-label="Close activity detail drawer"></button>
+
+            <aside class="relative h-full w-full max-w-2xl overflow-y-auto border-l border-white/[0.08] bg-[#0d1014] p-5 shadow-2xl sm:p-6">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <p class="section-kicker">Activity detail</p>
+                        <h3 class="mt-2 text-2xl font-semibold text-slate-100">{{ $selectedActivity->action }}</h3>
+                        <p class="mt-2 text-sm text-slate-500">{{ $selectedActivity->created_at->format('M d, Y h:i A') }}</p>
+                    </div>
+                    <button type="button" wire:click="closeDetailDrawer" class="btn-secondary px-3 py-1.5">Close</button>
+                </div>
+
+                <div class="mt-6 grid gap-3 sm:grid-cols-2">
+                    <div class="content-panel px-4 py-3">
+                        <p class="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">Actor</p>
+                        <p class="mt-2 text-sm font-semibold text-slate-100">{{ $selectedActivity->name }}</p>
+                        <p class="mt-1 text-xs text-slate-500">{{ $selectedActivity->email }}</p>
+                    </div>
+
+                    <div class="content-panel px-4 py-3">
+                        <p class="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">Affected record</p>
+                        @if ($selectedActivityAffectedRecord)
+                            <p class="mt-2 text-sm font-semibold text-slate-100">{{ $selectedActivityAffectedRecord['label'] }}</p>
+                            <p class="mt-1 text-xs text-slate-500">{{ $selectedActivityAffectedRecord['status'] }}</p>
+                        @else
+                            <p class="mt-2 text-sm text-slate-500">No related record was attached.</p>
+                        @endif
+                    </div>
+                </div>
+
+                <section class="mt-4 content-panel px-4 py-3">
+                    <h4 class="text-sm font-semibold text-slate-100">Request context</h4>
+                    <div class="mt-3 divide-y divide-white/[0.055]">
+                        @forelse ($selectedActivityContext as $item)
+                            <div class="grid gap-2 py-3 sm:grid-cols-[0.35fr_0.65fr]">
+                                <p class="text-xs uppercase tracking-[0.16em] text-slate-500">{{ $item['label'] }}</p>
+                                <p class="break-words text-sm text-slate-300">{{ $item['value'] }}</p>
+                            </div>
+                        @empty
+                            <p class="py-3 text-sm text-slate-500">No IP or device metadata was captured for this activity.</p>
+                        @endforelse
+                    </div>
+                </section>
+
+                <section class="mt-4 content-panel px-4 py-3">
+                    <h4 class="text-sm font-semibold text-slate-100">Before / after values</h4>
+                    <div class="mt-3 divide-y divide-white/[0.055]">
+                        @forelse ($selectedActivityChanges as $change)
+                            <div class="grid gap-3 py-3 lg:grid-cols-[0.3fr_0.35fr_0.35fr]">
+                                <p class="text-xs uppercase tracking-[0.16em] {{ $change['changed'] ? 'text-amber-300' : 'text-slate-500' }}">{{ $change['label'] }}</p>
+                                <div>
+                                    <p class="text-[10px] uppercase tracking-[0.16em] text-slate-600">Before</p>
+                                    <pre class="mt-1 whitespace-pre-wrap break-words rounded-lg border border-white/[0.06] bg-white/[0.025] p-2 text-xs leading-5 text-slate-300">{{ $change['before'] }}</pre>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] uppercase tracking-[0.16em] text-slate-600">After</p>
+                                    <pre class="mt-1 whitespace-pre-wrap break-words rounded-lg border border-white/[0.06] bg-white/[0.025] p-2 text-xs leading-5 text-slate-300">{{ $change['after'] }}</pre>
+                                </div>
+                            </div>
+                        @empty
+                            <p class="py-3 text-sm text-slate-500">No before / after values were stored for this activity.</p>
+                        @endforelse
+                    </div>
+                </section>
+
+                <section class="mt-4 content-panel px-4 py-3">
+                    <h4 class="text-sm font-semibold text-slate-100">Metadata</h4>
+                    <div class="mt-3 divide-y divide-white/[0.055]">
+                        @forelse ($selectedActivityMeta as $item)
+                            <div class="grid gap-2 py-3 sm:grid-cols-[0.35fr_0.65fr]">
+                                <p class="text-xs uppercase tracking-[0.16em] text-slate-500">{{ $item['label'] }}</p>
+                                <pre class="whitespace-pre-wrap break-words text-sm leading-6 text-slate-300">{{ $item['value'] }}</pre>
+                            </div>
+                        @empty
+                            <p class="py-3 text-sm text-slate-500">No additional metadata was stored.</p>
+                        @endforelse
+                    </div>
+                </section>
+            </aside>
+        </div>
+    @endif
 
     @if ($showDeleteModal)
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 px-4 py-6">

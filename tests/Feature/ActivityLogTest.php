@@ -81,4 +81,51 @@ class ActivityLogTest extends TestCase
             ->call('confirmDelete', $otherLog->id)
             ->assertForbidden();
     }
+
+    public function test_activity_detail_drawer_shows_context_metadata_and_changes(): void
+    {
+        $admin = User::factory()->create([
+            'role' => User::ROLE_ADMIN,
+        ]);
+
+        $target = User::factory()->create([
+            'name' => 'Original Name',
+            'email' => 'target@example.com',
+        ]);
+
+        $log = ActivityLog::query()->create([
+            'actor_id' => $admin->id,
+            'name' => $admin->name,
+            'email' => $admin->email,
+            'action' => 'Updated user',
+            'subject_type' => User::class,
+            'subject_id' => $target->id,
+            'meta' => [
+                'ip' => '127.0.0.1',
+                'user_agent' => 'Feature Test Browser',
+                'target_email' => $target->email,
+                'before' => [
+                    'name' => 'Original Name',
+                    'role' => 'user',
+                ],
+                'after' => [
+                    'name' => 'Updated Name',
+                    'role' => 'admin',
+                ],
+            ],
+        ]);
+
+        Livewire::actingAs($admin)->test(ActivitiesIndex::class)
+            ->call('openDetail', $log->id)
+            ->assertSet('showDetailDrawer', true)
+            ->assertSee('Activity detail')
+            ->assertSee('Updated user')
+            ->assertSee('User #'.$target->id)
+            ->assertSee('127.0.0.1')
+            ->assertSee('Feature Test Browser')
+            ->assertSee('Target Email')
+            ->assertSee($target->email)
+            ->assertSee('Original Name')
+            ->assertSee('Updated Name');
+    }
 }

@@ -24,7 +24,7 @@ class DatabaseSeeder extends Seeder
             'site_name' => 'User Management',
             'site_logo' => '',
             'mail_from_name' => 'User Management',
-            'mail_from_address' => 'admin@example.com',
+            'mail_from_address' => 'no-reply@user-management.local',
             'feature_registration_enabled' => true,
             'feature_audit_enabled' => true,
             'feature_notifications_enabled' => true,
@@ -49,6 +49,7 @@ class DatabaseSeeder extends Seeder
 
         $admin = User::factory()->create([
             'name' => 'Admin User',
+            'username' => 'admin',
             'email' => 'admin@example.com',
             'role' => User::ROLE_ADMIN,
         ]);
@@ -57,6 +58,7 @@ class DatabaseSeeder extends Seeder
 
         $user = User::factory()->create([
             'name' => 'Test User',
+            'username' => 'testuser',
             'email' => 'test@example.com',
             'role' => User::ROLE_USER,
         ]);

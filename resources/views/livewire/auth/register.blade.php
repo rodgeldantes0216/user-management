@@ -15,6 +15,12 @@
         </div>
 
         <div>
+            <label for="username" class="label">Username</label>
+            <input id="username" type="text" wire:model="username" class="input" placeholder="jane_doe">
+            @error('username') <p class="mt-2 text-sm text-rose-600">{{ $message }}</p> @enderror
+        </div>
+
+        <div>
             <label for="email" class="label">Email address</label>
             <input id="email" type="email" wire:model="email" class="input" placeholder="jane@example.com">
             @error('email') <p class="mt-2 text-sm text-rose-600">{{ $message }}</p> @enderror

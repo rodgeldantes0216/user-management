@@ -21,6 +21,11 @@
                         @error('name') <p class="mt-2 text-xs text-rose-400">{{ $message }}</p> @enderror
                     </div>
                     <div>
+                        <label class="label" for="username">Username</label>
+                        <input id="username" type="text" wire:model.defer="username" class="input w-full" />
+                        @error('username') <p class="mt-2 text-xs text-rose-400">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
                         <label class="label" for="email">Email</label>
                         <input id="email" type="email" wire:model.defer="email" class="input w-full" />
                         @error('email') <p class="mt-2 text-xs text-rose-400">{{ $message }}</p> @enderror
@@ -86,6 +91,7 @@
                     </div>
                     <div>
                         <p class="text-base font-semibold text-slate-100">{{ auth()->user()->name }}</p>
+                        <p class="text-sm text-slate-500">{{ auth()->user()->username ? '@'.auth()->user()->username : 'No username set' }}</p>
                         <p class="text-sm text-slate-500">{{ auth()->user()->email }}</p>
                     </div>
                 </div>

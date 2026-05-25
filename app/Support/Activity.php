@@ -17,6 +17,14 @@ class Activity
         }
 
         $actor ??= Auth::user();
+        $requestMeta = [];
+
+        if (! app()->runningInConsole() && request()) {
+            $requestMeta = [
+                'ip' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+            ];
+        }
 
         DB::table((new ActivityLog())->getTable())->insert([
             'actor_id' => $actor?->id,
@@ -25,7 +33,7 @@ class Activity
             'action' => $action,
             'subject_type' => $subject ? $subject::class : null,
             'subject_id' => $subject?->getKey(),
-            'meta' => json_encode($meta),
+            'meta' => json_encode(array_filter([...$requestMeta, ...$meta], fn ($value) => $value !== null && $value !== '')),
             'created_at' => now(),
             'updated_at' => now(),
         ]);

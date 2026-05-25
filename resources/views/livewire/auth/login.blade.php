@@ -9,8 +9,8 @@
 
     <form wire:submit="login" class="space-y-4">
         <div>
-            <label for="email" class="label">Email address</label>
-            <input id="email" type="email" wire:model="email" class="input" placeholder="you@example.com">
+            <label for="email" class="label">Email or username</label>
+            <input id="email" type="text" wire:model="email" class="input" placeholder="you@example.com or username">
             @error('email') <p class="mt-2 text-sm text-rose-600">{{ $message }}</p> @enderror
         </div>
 

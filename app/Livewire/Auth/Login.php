@@ -24,7 +24,7 @@ class Login extends Component
     public function login(): void
     {
         $credentials = $this->validate([
-            'email' => ['required', 'email'],
+            'email' => ['required', 'string'],
             'password' => ['required', 'string'],
             'remember' => ['boolean'],
         ]);
@@ -39,8 +39,10 @@ class Login extends Component
             ]);
         }
 
+        $loginField = filter_var($credentials['email'], FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+
         if (! Auth::attempt([
-            'email' => $credentials['email'],
+            $loginField => $credentials['email'],
             'password' => $credentials['password'],
         ], $credentials['remember'])) {
             RateLimiter::hit($throttleKey, 60);
@@ -58,6 +60,7 @@ class Login extends Component
 
         Activity::log('Logged in', Auth::user(), [
             'ip' => request()->ip(),
+            'user_agent' => request()->userAgent(),
             'remember' => $credentials['remember'],
         ], Auth::user());
 

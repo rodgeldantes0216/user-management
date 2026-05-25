@@ -40,6 +40,7 @@ class UserManagementTest extends TestCase
         $component
             ->call('create')
             ->set('name', 'New User')
+            ->set('username', 'new_user')
             ->set('email', 'new@example.com')
             ->set('role', User::ROLE_USER)
             ->set('password', 'password')
@@ -48,6 +49,7 @@ class UserManagementTest extends TestCase
             ->assertHasNoErrors();
 
         $this->assertDatabaseHas('users', [
+            'username' => 'new_user',
             'email' => 'new@example.com',
             'role' => User::ROLE_USER,
         ]);
@@ -60,6 +62,7 @@ class UserManagementTest extends TestCase
         $component
             ->call('edit', $target->id)
             ->set('name', 'Updated User')
+            ->set('username', 'updated_user')
             ->set('role', User::ROLE_ADMIN)
             ->call('save')
             ->assertHasNoErrors();
@@ -67,6 +70,7 @@ class UserManagementTest extends TestCase
         $this->assertDatabaseHas('users', [
             'id' => $target->id,
             'name' => 'Updated User',
+            'username' => 'updated_user',
             'role' => User::ROLE_ADMIN,
         ]);
         $this->assertDatabaseHas('activity_logs', [

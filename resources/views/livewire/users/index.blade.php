@@ -41,6 +41,7 @@
                 <thead class="table-head">
                     <tr>
                         <th class="px-5 py-3">Name</th>
+                        <th class="px-5 py-3">Username</th>
                         <th class="px-5 py-3">Email</th>
                         <th class="px-5 py-3">Role</th>
                         <th class="px-5 py-3">Status</th>
@@ -52,6 +53,7 @@
                     @forelse ($users as $user)
                         <tr class="table-row">
                             <td class="table-cell font-medium text-blue-100">{{ $user->name }}</td>
+                            <td class="table-cell text-blue-100/95">{{ $user->username ?? 'None' }}</td>
                             <td class="table-cell text-blue-100/95">{{ $user->email }}</td>
                             <td class="table-cell">
                                 <span class="badge-role">
@@ -84,7 +86,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-5 py-10 text-center text-sm text-slate-500">No users matched your current filters.</td>
+                            <td colspan="7" class="px-5 py-10 text-center text-sm text-slate-500">No users matched your current filters.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -116,13 +118,19 @@
                         </div>
 
                         <div>
+                            <label class="label">Username</label>
+                            <input type="text" wire:model="username" class="input" placeholder="john_doe">
+                            @error('username') <p class="mt-2 text-sm text-rose-600">{{ $message }}</p> @enderror
+                        </div>
+                    </div>
+
+                    <div class="grid gap-5 sm:grid-cols-2">
+                        <div>
                             <label class="label">Email</label>
                             <input type="email" wire:model="email" class="input" placeholder="john@example.com">
                             @error('email') <p class="mt-2 text-sm text-rose-600">{{ $message }}</p> @enderror
                         </div>
-                    </div>
 
-                    <div class="grid gap-5 sm:grid-cols-3">
                         <div>
                             <label class="label">Role</label>
                             <select wire:model="role" class="select">
@@ -132,7 +140,9 @@
                             </select>
                             @error('role') <p class="mt-2 text-sm text-rose-600">{{ $message }}</p> @enderror
                         </div>
+                    </div>
 
+                    <div class="grid gap-5 sm:grid-cols-2">
                         <div>
                             <label class="label">{{ $editingUserId ? 'New password' : 'Password' }}</label>
                             <input type="password" wire:model="password" class="input" placeholder="{{ $editingUserId ? 'Leave blank to keep current' : 'Minimum 8 characters' }}">

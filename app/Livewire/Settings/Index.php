@@ -45,6 +45,7 @@ class Index extends Component
     public function save(): void
     {
         abort_unless(auth()->user()->hasPermissionTo('settings.update'), 403);
+        $before = Settings::all();
 
         $validated = $this->validate([
             'site_name' => ['required', 'string', 'max:255'],
@@ -58,7 +59,10 @@ class Index extends Component
 
         Settings::save($validated);
 
-        Activity::log('Updated settings', null, $validated, auth()->user());
+        Activity::log('Updated settings', null, [
+            'before' => $before,
+            'after' => $validated,
+        ], auth()->user());
         NotificationCenter::notifyForModule(
             'settings',
             'Settings updated',

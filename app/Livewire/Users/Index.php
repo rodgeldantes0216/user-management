@@ -33,6 +33,8 @@ class Index extends Component
 
     public string $name = '';
 
+    public string $username = '';
+
     public string $email = '';
 
     public string $role = User::ROLE_USER;
@@ -77,6 +79,7 @@ class Index extends Component
 
         $this->editingUserId = $user->id;
         $this->name = $user->name;
+        $this->username = $user->username ?? '';
         $this->email = $user->email;
         $this->role = $user->role;
         $this->password = '';
@@ -91,9 +94,11 @@ class Index extends Component
             $this->authorize('update', $user);
 
             $validated = $this->validate($this->rules($user));
+            $before = $user->only(['name', 'username', 'email', 'role']);
 
             $payload = [
                 'name' => $validated['name'],
+                'username' => $validated['username'],
                 'email' => $validated['email'],
                 'role' => $validated['role'],
             ];
@@ -108,6 +113,8 @@ class Index extends Component
                 'target_name' => $user->name,
                 'target_email' => $user->email,
                 'role' => $validated['role'],
+                'before' => $before,
+                'after' => $user->fresh()->only(['name', 'username', 'email', 'role']),
             ], auth()->user());
             NotificationCenter::notifyForModule(
                 'users',
@@ -126,6 +133,7 @@ class Index extends Component
 
             $user = User::create([
                 'name' => $validated['name'],
+                'username' => $validated['username'],
                 'email' => $validated['email'],
                 'role' => $validated['role'],
                 'password' => $validated['password'],
@@ -233,6 +241,7 @@ class Index extends Component
 
         return [
             'name' => ['required', 'string', 'max:255'],
+            'username' => ['required', 'string', 'alpha_dash:ascii', 'min:3', 'max:40', 'unique:users,username,'.($user?->id ?? 'NULL')],
             'email' => ['required', 'email', 'max:255', 'unique:users,email,'.($user?->id ?? 'NULL')],
             'role' => ['required', 'exists:roles,name'],
             'password' => $passwordRules,
@@ -243,6 +252,7 @@ class Index extends Component
     {
         $this->editingUserId = null;
         $this->name = '';
+        $this->username = '';
         $this->email = '';
         $this->role = User::ROLE_USER;
         $this->password = '';

@@ -3,12 +3,12 @@
 This repository contains a Laravel-based user and admin management system built with Livewire full-page components. The app includes authentication, role and permission support, notifications, settings, activity/audit logging, profile management, dashboard and reports analytics, system health checks, and an admin UI for managing users, roles, and system settings.
 
 **Primary features**
-- **Authentication:** registration, login, logout, session-based auth, login throttling, and optional email verification hooks.
+- **Authentication:** registration with usernames, login by either email or username, logout, session-based auth, login throttling, and optional email verification hooks.
 - **Authorization:** role-based rules stored on the `users` table plus finer-grained permissions; policy-based checks via `UserPolicy`.
 - **User Management:** admin CRUD for users with search, filtering, pagination, modals, and active/idle/offline presence indicators.
 - **User Presence:** `last_seen_at` and `logged_out_at` tracking with green, yellow, and red status dots in the users table.
 - **Roles & Permissions:** role model and permission registry with seeding and sync support.
-- **Activity / Audit Logs:** important actions and login events recorded to `activity_logs` for admin auditing and analytics.
+- **Activity / Audit Logs:** important actions and login events recorded to `activity_logs` for admin auditing, analytics, and drawer-based activity detail review.
 - **Profile Management:** user profile page with editable profile fields and profile picture support.
 - **Settings:** application settings persisted via a `settings` table and accessed through a `Settings` helper.
 - **Notifications:** app-level notifications stored in the `app_notifications` table and surfaced in the UI.
@@ -22,6 +22,8 @@ This repository contains a Laravel-based user and admin management system built 
 ## Recent Updates
 
 - Added a Reports / Analytics module with charts for user growth, permission groups, login activity, and user presence.
+- Added username support across registration, login, user management, profile settings, factories, and seed data.
+- Added an Activity Detail Drawer for audit logs with metadata, affected record, request context, and before/after values where available.
 - Added user presence tracking using `last_seen_at` and `logged_out_at`, plus green/yellow/red status indicators in the users table.
 - Added a System Health page with infrastructure, filesystem, queue, mail, and security posture checks.
 - Added profile management fields and profile page support.
@@ -45,6 +47,9 @@ This repository contains a Laravel-based user and admin management system built 
 
 - [app/Livewire/](app/Livewire/) - Livewire page components for auth, dashboard, users, roles, settings, notifications, activities, reports, profile, and system health.
 - [app/Models/](app/Models/) - `User`, `Role`, `Permission`, `ActivityLog`, `Setting`, `AppNotification`.
+- [app/Livewire/Auth/Login.php](app/Livewire/Auth/Login.php) - login flow that accepts either email or username.
+- [app/Livewire/Auth/Register.php](app/Livewire/Auth/Register.php) - registration flow with username validation.
+- [app/Livewire/Activities/Index.php](app/Livewire/Activities/Index.php) - audit trail list and activity detail drawer state/formatting.
 - [app/Livewire/Reports/Index.php](app/Livewire/Reports/Index.php) - reports and analytics data aggregation.
 - [app/Livewire/SystemHealth/Index.php](app/Livewire/SystemHealth/Index.php) - system health and security posture checks.
 - [app/Livewire/Modules/](app/Livewire/Modules/) - module builder and module record pages for dynamically generated CRUD modules.
@@ -145,10 +150,10 @@ npm.cmd run build
 
 After seeding, the DatabaseSeeder creates a default admin and test user:
 
-| Role | Email | Password |
-|---|---|---|
-| Admin | admin@example.com | password |
-| User | test@example.com | password |
+| Role | Username | Email | Password |
+|---|---|---|---|
+| Admin | admin | admin@example.com | password |
+| User | testuser | test@example.com | password |
 
 ## Routes
 
@@ -168,6 +173,8 @@ Useful focused test slices:
 
 ```bash
 php artisan test tests/Feature/UserManagementTest.php
+php artisan test tests/Feature/AuthFlowTest.php
+php artisan test tests/Feature/ActivityLogTest.php
 php artisan test tests/Feature/ReportsAnalyticsTest.php
 php artisan test tests/Feature/SystemHealthTest.php
 ```
@@ -183,8 +190,9 @@ npm.cmd run build
 - The UI is implemented using Livewire and Blade; no separate JS SPA framework is required.
 - Debugbar is installed for local development and will display runtime profiling information when enabled.
 - Permissions are registered via `PermissionRegistry::syncAndRegister()` from navigation configuration and generated modules. Admin roles are kept in sync with newly introduced permissions.
+- Usernames are unique, validated with ASCII alpha-dash rules, and can be used interchangeably with email on the login screen.
 - Presence tracking is handled by `TrackUserActivity`; authenticated requests update `last_seen_at`, while logout updates `logged_out_at`.
-- Login events are logged to `activity_logs` so Reports / Analytics can show login trends.
+- Login events are logged to `activity_logs` so Reports / Analytics can show login trends. Activity metadata may include IP address, user agent, affected record, and before/after snapshots.
 - The System Health page performs safe local checks only. External vulnerability audits such as `composer audit` or `npm audit` should be run from the CLI or a queued scan workflow.
 - The `LargeUserSeeder` is intentionally chunked to avoid memory spikes during mass insertion; monitor database and disk usage when running it.
 - The CRUD Maker / Module Builder is documented in [docs/MODULE_BUILDER.md](docs/MODULE_BUILDER.md).
